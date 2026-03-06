@@ -408,6 +408,13 @@
     /* =========================
        狀態管理
     ========================= */
+/* =========================
+       PDF.js 設定修正
+    ========================= */
+    // 必須指定 Worker 路徑
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
     let pdfDoc = null;
     let currentPage = 1;
     let scale = 1.35;
@@ -415,91 +422,56 @@
     let selectedFieldId = null;
     let fieldSeq = 1;
 
+    // ... (保留你原本的 DOM 變數定義) ...
     const pdfFileInput = document.getElementById('pdfFile');
     const pdfCanvas = document.getElementById('pdfCanvas');
     const pdfStage = document.getElementById('pdfStage');
     const overlay = document.getElementById('overlay');
     const ctx = pdfCanvas.getContext('2d');
-    const pageInfo = document.getElementById('pageInfo');
-    const fieldList = document.getElementById('fieldList');
-    const jsonOutput = document.getElementById('jsonOutput');
-
-    const emptyEditor = document.getElementById('emptyEditor');
-    const editorPanel = document.getElementById('editorPanel');
-
-    const fieldRole = document.getElementById('fieldRole');
-    const fieldType = document.getElementById('fieldType');
-    const fieldPage = document.getElementById('fieldPage');
-    const fieldValue = document.getElementById('fieldValue');
-    const fieldWidth = document.getElementById('fieldWidth');
-    const fieldHeight = document.getElementById('fieldHeight');
-    const fieldX = document.getElementById('fieldX');
-    const fieldY = document.getElementById('fieldY');
-
+    
     /* =========================
-       工具函式
-    ========================= */
-    function uid() {
-      return `field_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    }
-
-    function getSelectedField() {
-      return fields.find(f => f.id === selectedFieldId) || null;
-    }
-
-    function clamp(val, min, max) {
-      return Math.min(Math.max(val, min), max);
-    }
-
-    function getDisplayText(field) {
-      if (field.type === 'signature') {
-        return field.value?.trim() || '簽名區';
-      }
-      if (field.type === 'text') {
-        return field.value?.trim() || '文字輸入區';
-      }
-      if (field.type === 'date') {
-        return field.value?.trim() || '日期欄位';
-      }
-      return '欄位';
-    }
-
-    /* =========================
-       載入 PDF
+       修正後的載入函數
     ========================= */
     pdfFileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+        const file = e.target.files[0];
+        if (!file) return;
 
-      const arrayBuffer = await file.arrayBuffer();
-      pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      currentPage = 1;
-      await renderPage(currentPage);
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            // 修正：使用更穩定的 getDocument 呼叫方式
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            pdfDoc = await loadingTask.promise;
+            currentPage = 1;
+            renderPage(currentPage);
+        } catch (err) {
+            console.error("PDF 載入失敗: ", err);
+            alert("PDF 載入失敗，請檢查檔案格式");
+        }
     });
 
-    /* =========================
-       渲染 PDF 頁面
-    ========================= */
     async function renderPage(pageNum) {
-      if (!pdfDoc) return;
+        if (!pdfDoc) return;
 
-      const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale });
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale });
 
-      pdfCanvas.width = viewport.width;
-      pdfCanvas.height = viewport.height;
-      overlay.style.width = viewport.width + 'px';
-      overlay.style.height = viewport.height + 'px';
-      pdfStage.style.width = viewport.width + 'px';
-      pdfStage.style.height = viewport.height + 'px';
+        pdfCanvas.width = viewport.width;
+        pdfCanvas.height = viewport.height;
+        
+        // 確保 overlay 跟著畫布大小連動
+        overlay.style.width = viewport.width + 'px';
+        overlay.style.height = viewport.height + 'px';
+        pdfStage.style.width = viewport.width + 'px';
+        pdfStage.style.height = viewport.height + 'px';
 
-      await page.render({
-        canvasContext: ctx,
-        viewport
-      }).promise;
-
-      pageInfo.textContent = `第 ${pageNum} / ${pdfDoc.numPages} 頁`;
-      renderOverlay();
+        const renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+        };
+        
+        await page.render(renderContext).promise;
+        document.getElementById('pageInfo').textContent = `第 ${pageNum} / ${pdfDoc.numPages} 頁`;
+        renderOverlay();
     }
 
     /* =========================
