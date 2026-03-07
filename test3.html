@@ -483,70 +483,67 @@ function renderUI() {
 }
 
 function bindBoxEvents(box, f) {
-  // 點擊選中
-box.onmousedown = (e) => {
-  if (e.target.classList.contains('resize-handle')) return;
-  if (e.target.classList.contains('del-icon')) return;
+  // 滑鼠拖曳
+  box.onmousedown = (e) => {
+    if (e.target.classList.contains('resize-handle')) return;
+    if (e.target.classList.contains('del-icon')) return;
 
-  e.preventDefault();
+    e.preventDefault();
 
-  // 只更新選取狀態，不要在這裡 renderUI()
-  if (selectedId !== f.id) {
     selectedId = f.id;
-
-    document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
-
     box.classList.add('active');
 
-    const sideItem = document.querySelector(`.field-item input[value="${CSS.escape(f.content)}"]`)?.closest('.field-item');
-    if (sideItem) sideItem.classList.add('active');
-  }
+    const containerRect = stageWrap.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
 
-  const containerRect = stageWrap.getBoundingClientRect();
-  const boxRect = box.getBoundingClientRect();
+    const offsetX = e.clientX - boxRect.left;
+    const offsetY = e.clientY - boxRect.top;
 
-  const offsetX = e.clientX - boxRect.left;
-  const offsetY = e.clientY - boxRect.top;
+    const onMove = (me) => {
+      let nx = me.clientX - containerRect.left - offsetX;
+      let ny = me.clientY - containerRect.top - offsetY;
 
-  const onMove = (me) => {
-    let nx = me.clientX - containerRect.left - offsetX;
-    let ny = me.clientY - containerRect.top - offsetY;
+      nx = Math.max(0, Math.min(nx, stageWrap.clientWidth - f.w));
+      ny = Math.max(0, Math.min(ny, stageWrap.clientHeight - f.h));
 
-    nx = Math.max(0, Math.min(nx, stageWrap.clientWidth - f.w));
-    ny = Math.max(0, Math.min(ny, stageWrap.clientHeight - f.h));
+      f.x = nx;
+      f.y = ny;
 
-    f.x = nx;
-    f.y = ny;
+      box.style.left = nx + 'px';
+      box.style.top = ny + 'px';
+    };
 
-    box.style.left = nx + 'px';
-    box.style.top = ny + 'px';
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      renderUI();
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
   };
 
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-
-    // 拖完再重畫，這時才安全
-    renderUI();
-  };
-
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-};
-
-  // 縮放功能
+  // 縮放
   const resizeHandle = box.querySelector('.resize-handle');
   resizeHandle.onmousedown = (e) => {
     e.stopPropagation();
+    e.preventDefault();
+
     const startW = f.w;
     const startH = f.h;
     const startX = e.clientX;
     const startY = e.clientY;
 
     const onMove = (me) => {
-      f.w = Math.max(60, startW + (me.clientX - startX));
-      f.h = Math.max(30, startH + (me.clientY - startY));
+      let newW = Math.max(60, startW + (me.clientX - startX));
+      let newH = Math.max(30, startH + (me.clientY - startY));
+
+      newW = Math.min(newW, stageWrap.clientWidth - f.x);
+      newH = Math.min(newH, stageWrap.clientHeight - f.y);
+
+      f.w = newW;
+      f.h = newH;
+
       box.style.width = f.w + 'px';
       box.style.height = f.h + 'px';
     };
@@ -554,34 +551,51 @@ box.onmousedown = (e) => {
     const onUp = () => {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      renderUI(); // 重新整理佈局
+      renderUI();
     };
 
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   };
 
-  // 支援 Touch 觸控
+  // 觸控拖曳
   box.ontouchstart = (e) => {
+    if (e.target.classList.contains('resize-handle')) return;
+    if (e.target.classList.contains('del-icon')) return;
+
     const touch = e.touches[0];
     selectedId = f.id;
-    renderUI();
-    
+
     const container = stageWrap.getBoundingClientRect();
-    const offsetX = touch.clientX - box.getBoundingClientRect().left;
-    const offsetY = touch.clientY - box.getBoundingClientRect().top;
+    const boxRect = box.getBoundingClientRect();
+
+    const offsetX = touch.clientX - boxRect.left;
+    const offsetY = touch.clientY - boxRect.top;
 
     const onTouchMove = (te) => {
       const t = te.touches[0];
+
       let nx = t.clientX - container.left - offsetX;
       let ny = t.clientY - container.top - offsetY;
-      f.x = nx; f.y = ny;
+
+      nx = Math.max(0, Math.min(nx, stageWrap.clientWidth - f.w));
+      ny = Math.max(0, Math.min(ny, stageWrap.clientHeight - f.h));
+
+      f.x = nx;
+      f.y = ny;
+
       box.style.left = nx + 'px';
       box.style.top = ny + 'px';
     };
 
+    const onTouchEnd = () => {
+      box.ontouchmove = null;
+      box.ontouchend = null;
+      renderUI();
+    };
+
     box.ontouchmove = onTouchMove;
-    box.ontouchend = () => { box.ontouchmove = null; };
+    box.ontouchend = onTouchEnd;
   };
 }
 
