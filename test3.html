@@ -3,85 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>遠端簽名系統 Demo - 穩定版</title>
+  <title>遠端簽名系統 - 起單模式</title>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif; background: #f3f4f6; color: #111827; }
+    body { margin: 0; font-family: "Noto Sans TC", sans-serif; background: #f3f4f6; color: #111827; }
     .app { display: grid; grid-template-columns: 340px 1fr; min-height: 100vh; }
     .sidebar { background: #ffffff; border-right: 1px solid #e5e7eb; padding: 20px; overflow-y: auto; }
-    .viewer-area { padding: 20px; overflow: auto; background: #e5e7eb; }
-    .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    h2 { font-size: 15px; margin: 0 0 12px; border-left: 4px solid #2563eb; padding-left: 8px; }
-    .desc { font-size: 13px; line-height: 1.5; color: #4b5563; margin-bottom: 16px; }
-    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151; }
-    input, select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; font-size: 14px; outline: none; background: #fff; margin-bottom: 8px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .btn { width: 100%; border: 0; border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .viewer-area { padding: 20px; overflow: auto; background: #64748b; display: flex; flex-direction: column; align-items: center; }
+    .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    h2 { font-size: 15px; margin: 0 0 12px; color: #2563eb; display: flex; align-items: center; }
+    h2::before { content: ""; width: 4px; height: 16px; background: #2563eb; margin-right: 8px; border-radius: 2px; }
+    
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; margin-bottom: 10px; }
+    
+    .btn { width: 100%; border: 0; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-bottom: 8px; }
     .btn-primary { background: #2563eb; color: white; }
-    .btn-primary:hover { background: #1d4ed8; }
     .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
     .btn-danger { background: #fee2e2; color: #b91c1c; }
-    .pdf-stage-wrap { display: flex; justify-content: center; padding-bottom: 50px; }
-    .pdf-stage { position: relative; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+
+    /* PDF 舞台 */
+    .pdf-stage-wrap { position: relative; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 20px; }
     #pdfCanvas { display: block; }
     .overlay { position: absolute; inset: 0; pointer-events: none; }
-    .sig-box { position: absolute; border: 2px dashed #2563eb; background: rgba(37, 99, 235, 0.1); border-radius: 4px; pointer-events: auto; cursor: move; display: flex; align-items: center; justify-content: center; text-align: center; }
-    .sig-box.active { border-color: #dc2626; background: rgba(220, 38, 38, 0.15); border-style: solid; z-index: 10; }
-    .sig-box .inner { font-size: 12px; color: #1e40af; pointer-events: none; }
+
+    /* 簽名/文字框樣式 */
+    .sig-box { 
+      position: absolute; border: 2px dashed #2563eb; background: rgba(255, 255, 255, 0.8); 
+      border-radius: 4px; pointer-events: auto; cursor: move; display: flex; align-items: center; justify-content: center; 
+    }
+    .sig-box.active { border-color: #dc2626; box-shadow: 0 0 10px rgba(220, 38, 38, 0.2); }
+    
+    /* 提示文字樣式 (灰底提示字) */
+    .sig-box .placeholder-text { color: #9ca3af; font-size: 13px; text-align: center; padding: 4px; pointer-events: none; }
+    
+    /* 起單人直接打字的樣式 */
+    .static-text { position: absolute; color: #000; font-size: 16px; background: transparent; border: 1px dotted #ccc; pointer-events: auto; cursor: text; padding: 2px; }
+
     .resize-handle { position: absolute; right: -5px; bottom: -5px; width: 12px; height: 12px; background: #2563eb; border: 2px solid white; border-radius: 50%; cursor: nwse-resize; }
-    .json-box { background: #1e293b; color: #a5f3fc; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; max-height: 200px; overflow: auto; }
-    .page-nav { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; justify-content: center; }
-    .badge { padding: 4px 12px; border-radius: 20px; background: #fff; border: 1px solid #d1d5db; font-size: 12px; font-weight: bold; }
-    .item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f9fafb; margin-bottom: 8px; font-size: 12px; }
+    .page-nav { display: flex; gap: 10px; align-items: center; background: white; padding: 10px 20px; border-radius: 30px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .json-box { background: #1e293b; color: #a5f3fc; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; white-space: pre-wrap; max-height: 150px; overflow: auto; }
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar">
       <div class="card">
-        <h1>PDF 簽名定位系統</h1>
-        <label for="pdfFile">1. 上傳 PDF 範本</label>
+        <h2>1. 載入文件</h2>
         <input id="pdfFile" type="file" accept="application/pdf" />
       </div>
 
       <div class="card">
-        <h2>2. 新增欄位</h2>
-        <div class="row">
-          <button class="btn btn-primary" id="addSignBoxBtn">＋ 簽名框</button>
-          <button class="btn btn-secondary" id="addTextBoxBtn">＋ 文字框</button>
-        </div>
-      </div>
-
-      <div class="card" id="editorSection">
-        <h2>3. 欄位設定</h2>
-        <div id="emptyEditor" class="desc">請點擊右側 PDF 上的欄位進行編輯。</div>
-        <div id="editorPanel" style="display:none;">
-          <label>顯示名稱</label>
-          <input id="fieldRole" type="text" />
-          
-          <div class="row">
-            <div><label>類型</label><select id="fieldType"><option value="signature">簽名</option><option value="text">文字</option></select></div>
-            <div><label>頁碼</label><input id="fieldPage" type="number" readonly /></div>
-          </div>
-
-          <div class="row">
-            <div><label>寬度 (W)</label><input id="fieldWidth" type="number" /></div>
-            <div><label>高度 (H)</label><input id="fieldHeight" type="number" /></div>
-          </div>
-          <div class="row">
-            <div><label>座標 X</label><input id="fieldX" type="number" /></div>
-            <div><label>座標 Y</label><input id="fieldY" type="number" /></div>
-          </div>
-          <button class="btn btn-danger" id="deleteFieldBtn" style="margin-top:8px;">刪除此欄位</button>
-        </div>
+        <h2>2. 起單人預填資料</h2>
+        <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">在此步驟，您可以直接在 PDF 上輸入本次申請的固定資訊。</p>
+        <button class="btn btn-secondary" id="addStaticTextBtn">＋ 在 PDF 上打字</button>
       </div>
 
       <div class="card">
-        <h2>輸出 JSON</h2>
+        <h2>3. 設定簽署位置</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button class="btn btn-primary" id="addSignBoxBtn">＋ 簽名框</button>
+          <button class="btn btn-primary" id="addTextBoxBtn">＋ 文字框</button>
+        </div>
+      </div>
+
+      <div class="card" id="editorPanel" style="display:none;">
+        <h2>欄位設定</h2>
+        <label>框內提示文字 (簽署人可見)</label>
+        <input id="fieldRole" type="text" placeholder="例如：請在此簽名" />
+        <button class="btn btn-danger" id="deleteFieldBtn">刪除此框</button>
+      </div>
+
+      <div class="card">
+        <h2>輸出設定 JSON</h2>
         <div id="jsonOutput" class="json-box">[]</div>
       </div>
     </aside>
@@ -89,15 +86,13 @@
     <main class="viewer-area">
       <div class="page-nav">
         <button class="btn btn-secondary" id="prevPageBtn" style="width:auto;">上一頁</button>
-        <span class="badge" id="pageInfo">未載入 PDF</span>
+        <span id="pageInfo">尚未載入</span>
         <button class="btn btn-secondary" id="nextPageBtn" style="width:auto;">下一頁</button>
       </div>
 
-      <div class="pdf-stage-wrap">
-        <div class="pdf-stage" id="pdfStage">
-          <canvas id="pdfCanvas"></canvas>
-          <div class="overlay" id="overlay"></div>
-        </div>
+      <div class="pdf-stage-wrap" id="pdfStageWrap">
+        <canvas id="pdfCanvas"></canvas>
+        <div class="overlay" id="overlay"></div>
       </div>
     </main>
   </div>
@@ -106,52 +101,72 @@
     import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
-    let pdfDoc = null;
-    let currentPage = 1;
-    let scale = 1.35;
-    let fields = [];
+    let pdfDoc = null, currentPage = 1, scale = 1.35;
+    let fields = []; // 簽名框與文字框
     let selectedFieldId = null;
 
     const pdfCanvas = document.getElementById('pdfCanvas');
     const overlay = document.getElementById('overlay');
     const ctx = pdfCanvas.getContext('2d');
 
-    // --- PDF 載入與渲染 ---
-    document.getElementById('pdfFile').addEventListener('change', async (e) => {
+    // --- 1. 載入 PDF ---
+    document.getElementById('pdfFile').onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const arrayBuffer = await file.arrayBuffer();
       pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       currentPage = 1;
       renderPage(currentPage);
-    });
+    };
 
     async function renderPage(pageNum) {
       if (!pdfDoc) return;
       const page = await pdfDoc.getPage(pageNum);
       const viewport = page.getViewport({ scale });
-
       pdfCanvas.width = viewport.width;
       pdfCanvas.height = viewport.height;
       overlay.style.width = viewport.width + 'px';
       overlay.style.height = viewport.height + 'px';
-      document.getElementById('pdfStage').style.width = viewport.width + 'px';
-
+      document.getElementById('pdfStageWrap').style.width = viewport.width + 'px';
       await page.render({ canvasContext: ctx, viewport }).promise;
       document.getElementById('pageInfo').textContent = `第 ${pageNum} / ${pdfDoc.numPages} 頁`;
-      renderOverlay();
+      refresh();
     }
 
-    // --- 欄位管理 ---
+    // --- 2. 起單人打字功能 ---
+    document.getElementById('addStaticTextBtn').onclick = () => {
+      if (!pdfDoc) return alert('請先上傳 PDF');
+      const textInput = document.createElement('div');
+      textInput.className = 'static-text';
+      textInput.contentEditable = true;
+      textInput.innerText = '點擊打字';
+      textInput.style.left = '100px';
+      textInput.style.top = '100px';
+      
+      // 讓打字框可以拖動
+      textInput.onmousedown = (e) => {
+        if (document.activeElement === textInput) return; // 打字時不觸發拖拽
+        const startX = e.clientX - textInput.offsetLeft;
+        const startY = e.clientY - textInput.offsetTop;
+        document.onmousemove = (me) => {
+          textInput.style.left = (me.clientX - startX) + 'px';
+          textInput.style.top = (me.clientY - startY) + 'px';
+        };
+        document.onmouseup = () => document.onmousemove = null;
+      };
+      overlay.appendChild(textInput);
+      textInput.focus();
+    };
+
+    // --- 3. 新增簽名/文字框 ---
     function addField(type) {
       if (!pdfDoc) return alert('請先上傳 PDF');
       const newField = {
         id: Date.now().toString(),
-        role: type === 'signature' ? '簽名處' : '文字欄位',
+        role: type === 'signature' ? '在此簽名' : '請輸入文字',
         type: type,
         page: currentPage,
-        x: 50, y: 50, w: 150, h: 50,
-        value: ''
+        x: 100, y: 100, w: 160, h: 50
       };
       fields.push(newField);
       selectedFieldId = newField.id;
@@ -161,87 +176,68 @@
     document.getElementById('addSignBoxBtn').onclick = () => addField('signature');
     document.getElementById('addTextBoxBtn').onclick = () => addField('text');
 
-    function renderOverlay() {
-      overlay.innerHTML = '';
+    function refresh() {
+      overlay.querySelectorAll('.sig-box').forEach(el => el.remove());
       fields.filter(f => f.page === currentPage).forEach(f => {
         const box = document.createElement('div');
         box.className = `sig-box ${f.id === selectedFieldId ? 'active' : ''}`;
         box.style.cssText = `left:${f.x}px; top:${f.y}px; width:${f.w}px; height:${f.h}px;`;
+        box.innerHTML = `<div class="placeholder-text">${f.role}</div>`;
         
-        box.innerHTML = `<div class="inner"><b>${f.role}</b><br>${f.type}</div>`;
         const handle = document.createElement('div');
         handle.className = 'resize-handle';
         box.appendChild(handle);
 
         box.onmousedown = (e) => {
+          e.stopPropagation();
           selectedFieldId = f.id;
           const startX = e.clientX - f.x;
           const startY = e.clientY - f.y;
           document.onmousemove = (me) => {
-            f.x = Math.max(0, me.clientX - startX);
-            f.y = Math.max(0, me.clientY - startY);
-            refresh();
+            f.x = me.clientX - startX;
+            f.y = me.clientY - startY;
+            box.style.left = f.x + 'px';
+            box.style.top = f.y + 'px';
+            updateJson();
           };
-          document.onmouseup = () => document.onmousemove = null;
-          refresh();
+          document.onmouseup = () => {
+            document.onmousemove = null;
+            renderEditor();
+          };
+          renderEditor();
+          updateActiveStyle();
         };
 
         handle.onmousedown = (e) => {
           e.stopPropagation();
-          const startW = f.w;
-          const startH = f.h;
-          const startX = e.clientX;
-          const startY = e.clientY;
+          const startW = f.w, startH = f.h, startX = e.clientX, startY = e.clientY;
           document.onmousemove = (me) => {
-            f.w = Math.max(50, startW + (me.clientX - startX));
-            f.h = Math.max(30, startH + (me.clientY - startY));
-            refresh();
+            f.w = Math.max(40, startW + (me.clientX - startX));
+            f.h = Math.max(20, startH + (me.clientY - startY));
+            box.style.width = f.w + 'px';
+            box.style.height = f.h + 'px';
+            updateJson();
           };
           document.onmouseup = () => document.onmousemove = null;
         };
-
         overlay.appendChild(box);
       });
+      renderEditor();
+      updateJson();
     }
 
-    // --- 編輯器連動 ---
     function renderEditor() {
       const f = fields.find(i => i.id === selectedFieldId);
       const panel = document.getElementById('editorPanel');
-      const empty = document.getElementById('emptyEditor');
-      if (!f) {
-        panel.style.display = 'none';
-        empty.style.display = 'block';
-        return;
-      }
+      if (!f) { panel.style.display = 'none'; return; }
       panel.style.display = 'block';
-      empty.style.display = 'none';
-
       document.getElementById('fieldRole').value = f.role;
-      document.getElementById('fieldType').value = f.type;
-      document.getElementById('fieldPage').value = f.page;
-      document.getElementById('fieldWidth').value = Math.round(f.w);
-      document.getElementById('fieldHeight').value = Math.round(f.h);
-      document.getElementById('fieldX').value = Math.round(f.x);
-      document.getElementById('fieldY').value = Math.round(f.y);
     }
 
-    // 監聽編輯器輸入
-    ['fieldRole', 'fieldType', 'fieldWidth', 'fieldHeight', 'fieldX', 'fieldY'].forEach(id => {
-      document.getElementById(id).oninput = (e) => {
-        const f = fields.find(i => i.id === selectedFieldId);
-        if (!f) return;
-        const val = e.target.value;
-        if (id === 'fieldRole') f.role = val;
-        if (id === 'fieldType') f.type = val;
-        if (id === 'fieldWidth') f.w = parseInt(val) || 0;
-        if (id === 'fieldHeight') f.h = parseInt(val) || 0;
-        if (id === 'fieldX') f.x = parseInt(val) || 0;
-        if (id === 'fieldY') f.y = parseInt(val) || 0;
-        renderOverlay();
-        updateJson();
-      };
-    });
+    document.getElementById('fieldRole').oninput = (e) => {
+      const f = fields.find(i => i.id === selectedFieldId);
+      if (f) { f.role = e.target.value; refresh(); }
+    };
 
     document.getElementById('deleteFieldBtn').onclick = () => {
       fields = fields.filter(f => f.id !== selectedFieldId);
@@ -249,27 +245,16 @@
       refresh();
     };
 
-    // --- 通用功能 ---
+    function updateActiveStyle() {
+      document.querySelectorAll('.sig-box').forEach(el => el.classList.remove('active'));
+    }
+
     function updateJson() {
       document.getElementById('jsonOutput').textContent = JSON.stringify(fields, null, 2);
     }
 
-    function refresh() {
-      renderOverlay();
-      renderEditor();
-      updateJson();
-    }
-
     document.getElementById('prevPageBtn').onclick = () => { if(currentPage > 1) renderPage(--currentPage); };
     document.getElementById('nextPageBtn').onclick = () => { if(currentPage < pdfDoc.numPages) renderPage(++currentPage); };
-
-    // 點擊空白處取消選取
-    overlay.onmousedown = (e) => {
-      if (e.target === overlay) {
-        selectedFieldId = null;
-        refresh();
-      }
-    };
   </script>
 </body>
 </html>
