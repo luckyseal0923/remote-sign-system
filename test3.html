@@ -485,19 +485,33 @@ function renderUI() {
 function bindBoxEvents(box, f) {
   // 點擊選中
 box.onmousedown = (e) => {
+  if (e.target.classList.contains('resize-handle')) return;
+  if (e.target.classList.contains('del-icon')) return;
 
-  if(e.target.classList.contains('resize-handle')) return;
+  e.preventDefault();
 
-  selectedId = f.id;
-  renderUI();
+  // 只更新選取狀態，不要在這裡 renderUI()
+  if (selectedId !== f.id) {
+    selectedId = f.id;
 
-  const offsetX = e.clientX - box.offsetLeft;
-  const offsetY = e.clientY - box.offsetTop;
+    document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
+
+    box.classList.add('active');
+
+    const sideItem = document.querySelector(`.field-item input[value="${CSS.escape(f.content)}"]`)?.closest('.field-item');
+    if (sideItem) sideItem.classList.add('active');
+  }
+
+  const containerRect = stageWrap.getBoundingClientRect();
+  const boxRect = box.getBoundingClientRect();
+
+  const offsetX = e.clientX - boxRect.left;
+  const offsetY = e.clientY - boxRect.top;
 
   const onMove = (me) => {
-
-    let nx = me.clientX - stageWrap.offsetLeft - offsetX;
-    let ny = me.clientY - stageWrap.offsetTop - offsetY;
+    let nx = me.clientX - containerRect.left - offsetX;
+    let ny = me.clientY - containerRect.top - offsetY;
 
     nx = Math.max(0, Math.min(nx, stageWrap.clientWidth - f.w));
     ny = Math.max(0, Math.min(ny, stageWrap.clientHeight - f.h));
@@ -512,6 +526,9 @@ box.onmousedown = (e) => {
   const onUp = () => {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
+
+    // 拖完再重畫，這時才安全
+    renderUI();
   };
 
   document.addEventListener('mousemove', onMove);
