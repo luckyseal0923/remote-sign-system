@@ -488,6 +488,18 @@
       background: linear-gradient(to top, white 70%, rgba(255,255,255,0));
       padding-top: 10px;
     }
+
+    .url-preview {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #f8fafc;
+      font-size: 12px;
+      color: #475569;
+      word-break: break-all;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
@@ -537,17 +549,14 @@
     </div>
 
     <div class="card">
-      <h2>2. 簽署人資訊</h2>
+      <h2>2. 簽署份數</h2>
       <div class="form-grid">
         <div class="field">
-          <label for="signerName">簽署人姓名</label>
-          <input id="signerName" type="text" placeholder="請輸入簽署人姓名">
-        </div>
-        <div class="field">
-          <label for="signerEmail">簽署人 Email</label>
-          <input id="signerEmail" type="email" placeholder="請輸入簽署人 Email">
+          <label for="signCount">簽署份數</label>
+          <input id="signCount" type="number" min="1" max="10" value="1" placeholder="請輸入 1~10">
         </div>
       </div>
+      <div class="hint">建立案件後，系統會依份數自動產生多組獨立簽署 URL 與子編號。</div>
     </div>
 
     <div class="card">
@@ -592,7 +601,7 @@
     </div>
 
     <div class="card">
-      <h2>5. 簽署欄位 <small>(發送後由對方填寫)</small></h2>
+      <h2>5. 簽署欄位 <small>(手機簽署用)</small></h2>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button class="btn btn-outline" id="addSig">✒️ 簽名框</button>
         <button class="btn btn-outline" id="addTxt">🔤 文字框</button>
@@ -604,8 +613,9 @@
       <h2>6. 建立案件</h2>
       <button class="btn btn-primary" id="createCaseBtn">✅ 建立案件</button>
       <div class="case-summary">
-        建立後將自動產生任務唯一碼，並跳轉至任務看板。
+        建立後將自動產生主案件編號、子編號與簽署 URL，並跳轉至任務看板。
       </div>
+      <div id="urlPreview" class="url-preview" style="display:none;"></div>
     </div>
 
   </div>
@@ -665,6 +675,7 @@ const fileNameEl = document.getElementById('fileName');
 const navUi = document.getElementById('navUi');
 const pageInfoEl = document.getElementById('pageInfo');
 const zoomLabelEl = document.getElementById('zoomLabel');
+const urlPreview = document.getElementById('urlPreview');
 
 const prefillFontSize = document.getElementById('prefillFontSize');
 const toggleBoldBtn = document.getElementById('toggleBoldBtn');
@@ -693,6 +704,10 @@ function generateCaseId() {
   const lastSeq = Number(localStorage.getItem(key) || '0') + 1;
   localStorage.setItem(key, String(lastSeq));
   return `Esign-${today}-${String(lastSeq).padStart(3, '0')}`;
+}
+
+function generateChildId(caseId, index) {
+  return `${caseId}-${String(index).padStart(2, '0')}`;
 }
 
 function isValidEmail(email) {
@@ -767,6 +782,32 @@ function updatePrefillStyleToolbar() {
 
   alignBtns.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.align === field.style.textAlign);
+  });
+}
+
+function getFieldTypeLabel(type) {
+  if (type === 'prefill') return '預填文字';
+  if (type === 'sig') return '簽名框';
+  return '文字框';
+}
+
+function createManagedInput(value, placeholder, onFocus, onInput) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = value;
+  input.placeholder = placeholder;
+  input.addEventListener('focus', onFocus);
+  input.addEventListener('input', onInput);
+  return input;
+}
+
+function highlightSelectedUI(fieldId) {
+  document.querySelectorAll('.box').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === fieldId);
+  });
+
+  document.querySelectorAll('.field-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === fieldId);
   });
 }
 
@@ -860,7 +901,6 @@ function addField(type) {
   fields.push(defaultField);
   selectedId = id;
   renderUI();
-  updatePrefillStyleToolbar();
 }
 
 function renderUI() {
@@ -879,7 +919,7 @@ function renderUI() {
       const px = getFieldPx(field);
 
       const box = document.createElement('div');
-      box.className = `box type-${field.type} ${isActive ? 'active' : ''}`;
+      box.className = `box type-${field.type === 'prefill' ? 'prefill' : field.type} ${isActive ? 'active' : ''}`;
       box.dataset.id = field.id;
       box.style.left = px.x + 'px';
       box.style.top = px.y + 'px';
@@ -888,12 +928,13 @@ function renderUI() {
 
       box.innerHTML = `
         <span class="box-num">${num}</span>
-        <div class="box-content">
-          <span>${field.content}</span>
-        </div>
+        <div class="box-content"><span></span></div>
         <div class="del-icon">✕</div>
         <div class="resize-handle"></div>
       `;
+
+      const boxText = box.querySelector('.box-content span');
+      boxText.textContent = field.content;
 
       const boxContent = box.querySelector('.box-content');
       boxContent.style.fontSize = `${field.style.fontSize || 14}px`;
@@ -918,30 +959,35 @@ function renderUI() {
     ========================= */
     const item = document.createElement('div');
     item.className = `field-item ${isActive ? 'active' : ''}`;
+    item.dataset.id = field.id;
 
-    const typeLabel =
-      field.type === 'prefill' ? '預填文字' :
-      field.type === 'sig' ? '簽名框' :
-      '文字框';
+    const label = document.createElement('label');
+    label.textContent = `[${num}] ${getFieldTypeLabel(field.type)} - 第 ${field.page} 頁`;
 
-    item.innerHTML = `
-      <label>[${num}] ${typeLabel} - 第 ${field.page} 頁</label>
-      <input type="text" value="${escapeHtml(field.content)}" placeholder="輸入提示文字...">
-    `;
+    const input = createManagedInput(
+      field.content,
+      '輸入提示文字...',
+      () => {
+        selectedId = field.id;
+        highlightSelectedUI(field.id);
+        updatePrefillStyleToolbar();
+      },
+      (e) => {
+        field.content = e.target.value;
+        const onCanvas = document.querySelector(`[data-id="${field.id}"] .box-content span`);
+        if (onCanvas) onCanvas.textContent = field.content;
+      }
+    );
 
-    const input = item.querySelector('input');
+    item.appendChild(label);
+    item.appendChild(input);
 
-    input.onfocus = () => {
-      selectedId = field.id;
-      renderUI();
-      updatePrefillStyleToolbar();
-    };
-
-    input.oninput = (e) => {
-      field.content = e.target.value;
-      const onCanvas = document.querySelector(`[data-id="${field.id}"] .box-content span`);
-      if (onCanvas) onCanvas.textContent = field.content;
-    };
+    item.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT') {
+        selectedId = field.id;
+        renderUI();
+      }
+    });
 
     if (field.type === 'prefill') {
       prefillList.appendChild(item);
@@ -951,14 +997,6 @@ function renderUI() {
   });
 
   updatePrefillStyleToolbar();
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
 }
 
 function bindBoxEvents(box, field) {
@@ -971,14 +1009,10 @@ function bindBoxEvents(box, field) {
 
     e.preventDefault();
 
-    // 只更新選取狀態，不在拖曳開始時重畫整個 UI
     if (selectedId !== field.id) {
       selectedId = field.id;
-
-      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
-
-      box.classList.add('active');
+      highlightSelectedUI(field.id);
+      updatePrefillStyleToolbar();
     }
 
     const boxRect = box.getBoundingClientRect();
@@ -1021,9 +1055,8 @@ function bindBoxEvents(box, field) {
 
     if (selectedId !== field.id) {
       selectedId = field.id;
-      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
-      box.classList.add('active');
+      highlightSelectedUI(field.id);
+      updatePrefillStyleToolbar();
     }
 
     const startPx = getFieldPx(field);
@@ -1066,9 +1099,8 @@ function bindBoxEvents(box, field) {
 
     if (selectedId !== field.id) {
       selectedId = field.id;
-      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
-      box.classList.add('active');
+      highlightSelectedUI(field.id);
+      updatePrefillStyleToolbar();
     }
 
     const boxRect = box.getBoundingClientRect();
@@ -1150,7 +1182,22 @@ alignBtns.forEach(btn => {
 /* =========================
    建立案件
 ========================= */
-function buildCasePayload(caseId) {
+function buildCasePayload(caseId, signCount) {
+  const childTasks = [];
+  const baseSignUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, 'sign.html')}`;
+
+  for (let i = 1; i <= signCount; i++) {
+    const signId = generateChildId(caseId, i);
+    childTasks.push({
+      signId,
+      caseId,
+      seq: i,
+      status: '未簽',
+      signedAt: '',
+      signUrl: `${baseSignUrl}?signId=${encodeURIComponent(signId)}`
+    });
+  }
+
   return {
     caseId,
     caseName: document.getElementById('caseName').value.trim(),
@@ -1159,12 +1206,12 @@ function buildCasePayload(caseId) {
     staffId: document.getElementById('staffId').value.trim(),
     password: document.getElementById('password8').value.trim(),
     applicantEmail: document.getElementById('applicantEmail').value.trim(),
-    signerName: document.getElementById('signerName').value.trim(),
-    signerEmail: document.getElementById('signerEmail').value.trim(),
+    signCount,
     fileName: fileNameEl.textContent,
     status: '已建立',
     createdAt: new Date().toISOString(),
-    fields
+    fields,
+    childTasks
   };
 }
 
@@ -1175,8 +1222,7 @@ function validateForm() {
   const staffId = document.getElementById('staffId').value.trim();
   const password = document.getElementById('password8').value.trim();
   const applicantEmail = document.getElementById('applicantEmail').value.trim();
-  const signerName = document.getElementById('signerName').value.trim();
-  const signerEmail = document.getElementById('signerEmail').value.trim();
+  const signCount = Number(document.getElementById('signCount').value);
 
   if (!caseName) return "請填寫案件名稱";
   if (!applicantName) return "請填寫起單人姓名";
@@ -1184,8 +1230,7 @@ function validateForm() {
   if (!staffId) return "請填寫員編";
   if (password.length !== 8) return "密碼需為 8 碼";
   if (!applicantEmail || !isValidEmail(applicantEmail)) return "請輸入正確的起單人 Email";
-  if (!signerName) return "請填寫簽署人姓名";
-  if (!signerEmail || !isValidEmail(signerEmail)) return "請輸入正確的簽署人 Email";
+  if (!Number.isInteger(signCount) || signCount < 1 || signCount > 10) return "簽署份數請輸入 1~10";
   if (!pdfDoc) return "請先上傳 PDF 文件";
   if (fields.length === 0) return "請至少新增一個欄位";
 
@@ -1199,18 +1244,26 @@ document.getElementById('createCaseBtn').onclick = () => {
     return;
   }
 
+  const signCount = Number(document.getElementById('signCount').value);
   const caseId = generateCaseId();
-  const payload = buildCasePayload(caseId);
+  const payload = buildCasePayload(caseId, signCount);
 
   const cases = JSON.parse(localStorage.getItem('esign-case-list') || '[]');
   cases.unshift(payload);
   localStorage.setItem('esign-case-list', JSON.stringify(cases));
 
+  urlPreview.style.display = 'block';
+  urlPreview.innerHTML = `
+    <strong>建立成功：${caseId}</strong><br>
+    第一份簽署連結：<br>
+    ${payload.childTasks[0].signUrl}
+  `;
+
   showToast(`案件建立成功：${caseId}`);
 
   setTimeout(() => {
     window.location.href = `taskboard.html?caseId=${encodeURIComponent(caseId)}`;
-  }, 700);
+  }, 900);
 };
 
 /* =========================
