@@ -970,8 +970,16 @@ function bindBoxEvents(box, field) {
     if (e.target.classList.contains('del-icon')) return;
 
     e.preventDefault();
-    selectedId = field.id;
-    renderUI();
+
+    // 只更新選取狀態，不在拖曳開始時重畫整個 UI
+    if (selectedId !== field.id) {
+      selectedId = field.id;
+
+      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
+
+      box.classList.add('active');
+    }
 
     const boxRect = box.getBoundingClientRect();
     const containerRect = stageWrap.getBoundingClientRect();
@@ -979,10 +987,10 @@ function bindBoxEvents(box, field) {
     const startOffsetY = e.clientY - boxRect.top;
 
     const onMove = (me) => {
+      const px = getFieldPx(field);
+
       let newX = me.clientX - containerRect.left - startOffsetX;
       let newY = me.clientY - containerRect.top - startOffsetY;
-
-      const px = getFieldPx(field);
 
       newX = clamp(newX, 0, stageWrap.clientWidth - px.w);
       newY = clamp(newY, 0, stageWrap.clientHeight - px.h);
@@ -1011,18 +1019,22 @@ function bindBoxEvents(box, field) {
     e.stopPropagation();
     e.preventDefault();
 
-    selectedId = field.id;
-    renderUI();
+    if (selectedId !== field.id) {
+      selectedId = field.id;
+      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
+      box.classList.add('active');
+    }
 
     const startPx = getFieldPx(field);
     const startX = e.clientX;
     const startY = e.clientY;
 
     const onMove = (me) => {
+      const currentPx = getFieldPx(field);
+
       let newW = Math.max(60, startPx.w + (me.clientX - startX));
       let newH = Math.max(30, startPx.h + (me.clientY - startY));
-
-      const currentPx = getFieldPx(field);
 
       newW = Math.min(newW, stageWrap.clientWidth - currentPx.x);
       newH = Math.min(newH, stageWrap.clientHeight - currentPx.y);
@@ -1051,8 +1063,13 @@ function bindBoxEvents(box, field) {
     if (e.target.classList.contains('del-icon')) return;
 
     const touch = e.touches[0];
-    selectedId = field.id;
-    renderUI();
+
+    if (selectedId !== field.id) {
+      selectedId = field.id;
+      document.querySelectorAll('.box').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.field-item').forEach(el => el.classList.remove('active'));
+      box.classList.add('active');
+    }
 
     const boxRect = box.getBoundingClientRect();
     const containerRect = stageWrap.getBoundingClientRect();
