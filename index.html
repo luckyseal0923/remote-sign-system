@@ -402,16 +402,6 @@
   <script>
     // 1. 使用更安全的初始化方式
   // PDF.js 4.x 版本通常會掛載在 window['pdfjs-dist/build/pdf'] 或 window.pdfjsLib
-  var pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
-
-  if (!pdfjsLib) {
-    console.error("PDF.js 載入失敗，請檢查 CDN 連結是否正常。");
-  } else {
-    // 2. 設定 Worker (請確保版本 4.4.168 是一致的)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
-  }
-/* ========================= 1. 初始化 PDF.js (修正順序) ========================= */
-// 確保 PDF.js 只宣告一次且設定 worker 路徑
 const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
 if (!pdfjsLib) {
   console.error("PDF.js 載入失敗，請檢查 CDN 連結是否正常。");
