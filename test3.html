@@ -3,294 +3,230 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>遠端簽名起單系統 - 高級生產版</title>
-  
+  <title>遠端簽名系統 - 起單人作業版</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
-
   <style>
     :root {
       --primary: #2563eb;
-      --sig-color: #ef4444; /* 簽名框：紅色系 */
-      --txt-color: #0ea5e9; /* 文字框：藍色系 */
-      --prefill-color: #10b981; /* 預填框：綠色系 */
+      --sig-color: #ef4444;
+      --txt-color: #0ea5e9;
+      --prefill-color: #10b981;
     }
-
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Noto Sans TC", sans-serif; background: #f1f5f9; color: #1e293b; }
+    body { margin: 0; font-family: "Noto Sans TC", sans-serif; background: #f1f5f9; display: flex; height: 100vh; }
     
-    .app { display: grid; grid-template-columns: 360px 1fr; min-height: 100vh; }
-
-    /* 側邊欄樣式 */
-    .sidebar { background: white; border-right: 1px solid #e2e8f0; padding: 20px; overflow-y: auto; height: 100vh; position: sticky; top: 0; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    h2 { font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
-    h2 span { background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .btn { border: 0; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; }
-    .btn-main { background: var(--primary); color: white; width: 100%; margin-top: 8px; }
-    .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
-    .btn-outline:hover { background: #f8fafc; }
-
-    /* 欄位清單清單 */
-    .field-list { margin-top: 12px; }
-    .field-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; position: relative; transition: 0.2s; cursor: pointer; }
-    .field-item.active { border-color: var(--primary); background: #eff6ff; }
-    .field-item .num { font-weight: bold; margin-right: 8px; color: var(--primary); }
-    .field-item input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 13px; margin-top: 8px; }
-
-    /* PDF 預覽區 */
-    .viewer { padding: 40px; background: #64748b; display: flex; flex-direction: column; align-items: center; overflow: auto; }
-    .page-ctrl { background: white; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+    /* 側邊欄 */
+    .sidebar { width: 380px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; z-index: 100; }
+    .sidebar-content { padding: 20px; overflow-y: auto; flex: 1; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    h2 { font-size: 15px; margin: 0 0 12px; color: #334155; border-left: 4px solid var(--primary); padding-left: 10px; }
     
-    .stage-container { position: relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); background: white; }
+    .btn { width: 100%; border: 0; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 5px; }
+    .btn-outline { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
+    .btn-outline:hover { background: #eff6ff; border-color: var(--primary); }
+
+    /* 清單樣式 */
+    .field-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; background: #fff; }
+    .field-item.active { border-color: var(--primary); background: #f0f7ff; }
+    .field-item label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #64748b; }
+    .field-item input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+
+    /* PDF 區域 */
+    .viewer { flex: 1; background: #475569; padding: 40px; overflow: auto; display: flex; flex-direction: column; align-items: center; }
+    .stage-wrap { position: relative; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     #pdfCanvas { display: block; }
     .overlay { position: absolute; inset: 0; pointer-events: none; }
-
-    /* 框框互動樣式 */
-    .box { 
-      position: absolute; pointer-events: auto; cursor: move; display: flex; align-items: center; justify-content: center;
-      min-width: 60px; min-height: 30px; user-select: none;
-    }
-    .box .label-num { position: absolute; top: -10px; left: -10px; background: white; border: 1px solid currentColor; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
-    .box .del-btn { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; border: none; opacity: 0; transition: 0.2s; }
-    .box:hover .del-btn { opacity: 1; }
-    .box .resizer { position: absolute; bottom: -4px; right: -4px; width: 10px; height: 10px; background: white; border: 2px solid currentColor; border-radius: 50%; cursor: nwse-resize; }
-
-    /* 不同類型的顏色 */
-    .type-signature { border: 2px dashed var(--sig-color); color: var(--sig-color); background: rgba(239, 68, 68, 0.05); }
-    .type-text { border: 2px dashed var(--txt-color); color: var(--txt-color); background: rgba(14, 165, 233, 0.05); }
-    .type-prefill { border: 1px solid var(--prefill-color); color: #000; background: rgba(16, 185, 129, 0.05); cursor: text; }
-
-    .hint-text { font-size: 12px; color: #94a3b8; text-align: center; }
-    .prefill-input { border: none; background: transparent; width: 90%; text-align: center; font-size: inherit; outline: none; }
     
-    .json-box { background: #1e293b; color: #38bdf8; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; white-space: pre-wrap; max-height: 120px; overflow: auto; }
+    /* 框框樣式 */
+    .box { 
+      position: absolute; pointer-events: auto; cursor: grab;
+      display: flex; align-items: center; justify-content: center;
+      transition: box-shadow 0.2s; background: rgba(255,255,255,0.9);
+    }
+    .box:active { cursor: grabbing; }
+    .box.active { ring: 2px solid var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+    
+    .type-sig { border: 2px dashed var(--sig-color); }
+    .type-txt { border: 2px dashed var(--txt-color); }
+    .type-pre { border: 2px solid var(--prefill-color); background: rgba(16, 185, 129, 0.05); }
+    
+    .box-num { position: absolute; top: -10px; left: -10px; background: #334155; color: white; font-size: 11px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+    .box-content { font-size: 13px; color: #64748b; text-align: center; width: 100%; padding: 5px; overflow: hidden; white-space: nowrap; }
+    .type-pre .box-content { color: #000; font-weight: 500; } /* 預填文字顯示為黑色 */
+
+    .del-icon { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; font-size: 12px; visibility: hidden; }
+    .box:hover .del-icon { visibility: visible; }
+
+    .page-nav { background: white; padding: 8px 20px; border-radius: 30px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
 
-<div class="app">
-  <aside class="sidebar">
+<aside class="sidebar">
+  <div class="sidebar-content">
     <div class="card">
-      <h2><span>1</span>載入文件</h2>
-      <input type="file" id="pdfFile" accept="application/pdf" style="width: 100%;">
+      <h2>1. 上傳文件</h2>
+      <input type="file" id="pdfFile" accept="application/pdf">
     </div>
 
     <div class="card">
-      <h2><span>2</span>起單人預填</h2>
-      <button class="btn btn-outline btn-main" id="addPrefill">＋ 在 PDF 上輸入文字</button>
-      <p style="font-size: 11px; color: #64748b; margin-top: 8px;">預填資料會直接顯示在文件中，用於填寫合約編號、日期等。</p>
+      <h2>2. 起單人預填資料</h2>
+      <button class="btn btn-outline" id="addPrefill">＋ 新增預填文字框</button>
+      <div id="prefillList" class="list-container"></div>
     </div>
 
     <div class="card">
-      <h2><span>3</span>設定簽署位與清單</h2>
-      <div class="btn-group">
-        <button class="btn btn-outline" id="addSig" style="border-color: var(--sig-color); color: var(--sig-color);">＋ 簽名框</button>
-        <button class="btn btn-outline" id="addTxt" style="border-color: var(--txt-color); color: var(--txt-color);">＋ 文字框</button>
+      <h2>3. 設定簽署位置</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="btn btn-outline" id="addSig">＋ 簽名框</button>
+        <button class="btn btn-outline" id="addTxt">＋ 文字框</button>
       </div>
-      
-      <div id="fieldList" class="field-list">
-        </div>
+      <div id="signList" class="list-container"></div>
     </div>
+  </div>
+</aside>
 
-    <div class="card">
-      <h2>輸出 JSON</h2>
-      <div id="jsonOutput" class="json-box">[]</div>
-    </div>
-  </aside>
-
-  <main class="viewer">
-    <div class="page-ctrl">
-      <button class="btn btn-outline" id="prevPage" style="padding: 4px 12px;">＜</button>
-      <span id="pageInfo" style="font-size: 14px; font-weight: bold; min-width: 80px; text-align: center;">尚未載入</span>
-      <button class="btn btn-outline" id="nextPage" style="padding: 4px 12px;">＞</button>
-    </div>
-
-    <div class="stage-container" id="stageContainer">
-      <canvas id="pdfCanvas"></canvas>
-      <div class="overlay" id="overlay"></div>
-    </div>
-  </main>
-</div>
+<main class="viewer">
+  <div class="page-nav" id="navUi" style="display:none;">
+    <button id="prev">上一頁</button>
+    <span id="pageInfo">1 / 1</span>
+    <button id="next">下一頁</button>
+  </div>
+  <div class="stage-wrap" id="stageWrap">
+    <canvas id="pdfCanvas"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+</main>
 
 <script type="module">
   import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
-  let pdfDoc = null, currentPage = 1, scale = 1.35;
-  let fields = []; // 儲存所有框框
-  let selectedId = null;
+  let pdfDoc = null, currPage = 1, fields = [], selectedId = null;
 
-  const pdfCanvas = document.getElementById('pdfCanvas');
-  const overlay = document.getElementById('overlay');
-  const ctx = pdfCanvas.getContext('2d');
-
-  // --- PDF 處理 ---
+  // PDF 載入
   document.getElementById('pdfFile').onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const arrayBuffer = await file.arrayBuffer();
     pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    currentPage = 1;
-    renderPage(currentPage);
+    document.getElementById('navUi').style.display = 'flex';
+    renderPage(1);
   };
 
-  async function renderPage(pageNum) {
-    if (!pdfDoc) return;
-    const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
-    pdfCanvas.width = viewport.width;
-    pdfCanvas.height = viewport.height;
-    overlay.style.width = viewport.width + 'px';
-    overlay.style.height = viewport.height + 'px';
-    document.getElementById('stageContainer').style.width = viewport.width + 'px';
+  async function renderPage(num) {
+    currPage = num;
+    const page = await pdfDoc.getPage(num);
+    const viewport = page.getViewport({ scale: 1.35 });
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width; canvas.height = viewport.height;
     await page.render({ canvasContext: ctx, viewport }).promise;
-    document.getElementById('pageInfo').textContent = `${pageNum} / ${pdfDoc.numPages}`;
+    
+    document.getElementById('stageWrap').style.width = viewport.width + 'px';
+    document.getElementById('overlay').style.width = viewport.width + 'px';
+    document.getElementById('overlay').style.height = viewport.height + 'px';
+    document.getElementById('pageInfo').textContent = `${num} / ${pdfDoc.numPages}`;
     renderUI();
   }
 
-  // --- 邏輯功能 ---
   function addField(type) {
-    if (!pdfDoc) return alert('請先載入 PDF');
+    if (!pdfDoc) return alert('請先上傳 PDF');
     const id = Date.now().toString();
-    const newField = {
-      id,
-      type,
-      page: currentPage,
-      x: 100, y: 100, w: 150, h: 50,
-      hint: type === 'signature' ? '請在此簽名' : (type === 'prefill' ? '輸入預填文字' : '請輸入文字內容')
-    };
-    fields.push(newField);
+    fields.push({
+      id, type, page: currPage,
+      x: 100, y: 100, w: 160, h: 45,
+      content: type === 'sig' ? '請在此簽名' : (type === 'txt' ? '請輸入文字' : '預填內容')
+    });
     selectedId = id;
     renderUI();
   }
 
-  document.getElementById('addSig').onclick = () => addField('signature');
-  document.getElementById('addTxt').onclick = () => addField('text');
-  document.getElementById('addPrefill').onclick = () => addField('prefill');
-
   function renderUI() {
-    // 1. 渲染 PDF 上的框
-    overlay.innerHTML = '';
-    const currentPageFields = fields.filter(f => f.page === currentPage);
-    
-    fields.forEach((f, index) => {
-      if (f.page !== currentPage) return;
+    const overlay = document.getElementById('overlay');
+    const preList = document.getElementById('prefillList');
+    const signList = document.getElementById('signList');
+    overlay.innerHTML = ''; preList.innerHTML = ''; signList.innerHTML = '';
 
-      const box = document.createElement('div');
-      box.className = `box type-${f.type} ${f.id === selectedId ? 'active' : ''}`;
-      box.style.cssText = `left:${f.x}px; top:${f.y}px; width:${f.w}px; height:${f.h}px;`;
+    fields.forEach((f, i) => {
+      const num = i + 1;
       
-      // 編號標籤 (對照用)
-      const label = document.createElement('div');
-      label.className = 'label-num';
-      label.textContent = index + 1;
-      box.appendChild(label);
+      // 1. PDF 上的框框渲染
+      if (f.page === currPage) {
+        const box = document.createElement('div');
+        box.className = `box type-${f.type} ${f.id === selectedId ? 'active' : ''}`;
+        box.style.cssText = `left:${f.x}px; top:${f.y}px; width:${f.w}px; height:${f.h}px;`;
+        box.innerHTML = `
+          <span class="box-num">${num}</span>
+          <div class="box-content">${f.content}</div>
+          <div class="del-icon" onclick="removeField('${f.id}')">×</div>
+        `;
 
-      // 內容顯示
-      if (f.type === 'prefill') {
-        const input = document.createElement('input');
-        input.className = 'prefill-input';
-        input.value = f.hint;
-        input.oninput = (e) => { f.hint = e.target.value; updateOutput(); };
-        box.appendChild(input);
-      } else {
-        const hint = document.createElement('div');
-        hint.className = 'hint-text';
-        hint.textContent = f.hint;
-        box.appendChild(hint);
+        // 拖移邏輯 (修正衝突，確保點擊可選中)
+        box.onmousedown = (e) => {
+          e.stopPropagation();
+          selectedId = f.id;
+          renderUI();
+          
+          let shiftX = e.clientX - box.getBoundingClientRect().left;
+          let shiftY = e.clientY - box.getBoundingClientRect().top;
+
+          function moveAt(pageX, pageY) {
+            const containerRect = document.getElementById('stageWrap').getBoundingClientRect();
+            f.x = pageX - containerRect.left - shiftX;
+            f.y = pageY - containerRect.top - shiftY;
+            box.style.left = f.x + 'px';
+            box.style.top = f.y + 'px';
+          }
+
+          function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
+          document.addEventListener('mousemove', onMouseMove);
+          document.onmouseup = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.onmouseup = null;
+          };
+        };
+        overlay.appendChild(box);
       }
 
-      // 刪除按鈕
-      const del = document.createElement('button');
-      del.className = 'del-btn';
-      del.innerHTML = '×';
-      del.onclick = (e) => { e.stopPropagation(); removeField(f.id); };
-      box.appendChild(del);
-
-      // 縮放手把
-      const resizer = document.createElement('div');
-      resizer.className = 'resizer';
-      box.appendChild(resizer);
-
-      // 拖移邏輯
-      box.onmousedown = (e) => {
-        if (e.target.tagName === 'INPUT' || e.target === del) return;
-        selectedId = f.id;
-        renderUI();
-        const startX = e.clientX - f.x, startY = e.clientY - f.y;
-        document.onmousemove = (me) => {
-          f.x = me.clientX - startX;
-          f.y = me.clientY - startY;
-          box.style.left = f.x + 'px';
-          box.style.top = f.y + 'px';
-          updateOutput();
-        };
-        document.onmouseup = () => document.onmousemove = null;
-      };
-
-      // 縮放邏輯
-      resizer.onmousedown = (e) => {
-        e.stopPropagation();
-        const startW = f.w, startH = f.h, startX = e.clientX, startY = e.clientY;
-        document.onmousemove = (me) => {
-          f.w = Math.max(50, startW + (me.clientX - startX));
-          f.h = Math.max(25, startH + (me.clientY - startY));
-          box.style.width = f.w + 'px';
-          box.style.height = f.h + 'px';
-          updateOutput();
-        };
-        document.onmouseup = () => document.onmousemove = null;
-      };
-
-      overlay.appendChild(box);
-    });
-
-    // 2. 渲染左側清單 (僅顯示簽名與文字框)
-    const listEl = document.getElementById('fieldList');
-    listEl.innerHTML = '';
-    fields.forEach((f, index) => {
-      if (f.type === 'prefill') return; // 預填文字通常不進簽署清單
-      
+      // 2. 左側清單渲染
       const item = document.createElement('div');
       item.className = `field-item ${f.id === selectedId ? 'active' : ''}`;
+      const labelName = f.type === 'prefill' ? '預填文字' : (f.type === 'sig' ? '簽名提示' : '文字提示');
+      
       item.innerHTML = `
-        <div><span class="num">${index + 1}</span> <b>${f.type === 'signature' ? '簽名位' : '填寫位'}</b> (第 ${f.page} 頁)</div>
-        <input type="text" value="${f.hint}" placeholder="設定提示文字...">
+        <label>[${num}] ${labelName} (第 ${f.page} 頁)</label>
+        <input type="text" value="${f.content}" onfocus="selectedId='${f.id}'; renderUI();" oninput="updateContent('${f.id}', this.value)">
       `;
       
-      item.onclick = () => { 
-        selectedId = f.id; 
-        if(f.page !== currentPage) { currentPage = f.page; renderPage(currentPage); }
-        else { renderUI(); }
-      };
-
-      item.querySelector('input').oninput = (e) => {
-        f.hint = e.target.value;
-        const boxLabel = overlay.querySelector(`.box[style*="left: ${f.x}px"] .hint-text`); // 簡單尋找
-        renderUI(); // 重新渲染以同步
-      };
-
-      listEl.appendChild(item);
+      if (f.type === 'prefill') preList.appendChild(item);
+      else signList.appendChild(item);
     });
-
-    updateOutput();
   }
 
-  function removeField(id) {
-    fields = fields.filter(f => f.id !== id);
-    if (selectedId === id) selectedId = null;
+  window.updateContent = (id, val) => {
+    const f = fields.find(x => x.id === id);
+    if (f) f.content = val;
+    // 同步更新 PDF 上的文字，但不重新 renderUI 避免失去焦點
+    const boxes = document.querySelectorAll('.box');
+    fields.forEach((field, idx) => {
+        if(field.id === id && field.page === currPage) {
+            const contentDiv = document.querySelectorAll('.box-content')[idx % boxes.length];
+            if(contentDiv) contentDiv.textContent = val;
+        }
+    });
+  };
+
+  window.removeField = (id) => {
+    fields = fields.filter(x => x.id !== id);
     renderUI();
-  }
+  };
 
-  function updateOutput() {
-    document.getElementById('jsonOutput').textContent = JSON.stringify(fields, null, 2);
-  }
-
-  // 換頁功能
-  document.getElementById('prevPage').onclick = () => { if(currentPage > 1) renderPage(--currentPage); };
-  document.getElementById('nextPage').onclick = () => { if(currentPage < pdfDoc.numPages) renderPage(++currentPage); };
+  document.getElementById('addPrefill').onclick = () => addField('prefill');
+  document.getElementById('addSig').onclick = () => addField('sig');
+  document.getElementById('addTxt').onclick = () => addField('txt');
+  document.getElementById('prev').onclick = () => currPage > 1 && renderPage(currPage - 1);
+  document.getElementById('next').onclick = () => currPage < pdfDoc.numPages && renderPage(currPage + 1);
 </script>
 
 </body>
