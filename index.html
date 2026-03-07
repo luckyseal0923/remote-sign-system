@@ -400,79 +400,94 @@
   </div>
 
   <script>
-    /* =========================
-       PDF.js 基本設定
-    ========================= */
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+  /* =========================
+      1. 初始化 PDF.js (修正順序)
+  ========================= */
+  // 先獲取引用
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+  // 再設定 Worker 路徑 (確保版本與上方 CDN 一致)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
 
-    /* =========================
-       狀態管理
-    ========================= */
-/* =========================
-       PDF.js 設定修正
-    ========================= */
-    // 必須指定 Worker 路徑
-    const pdfjsLib = window['pdfjs-dist/build/pdf'];
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  /* =========================
+      2. 狀態管理與 DOM 元素
+  ========================= */
+  let pdfDoc = null;
+  let currentPage = 1;
+  let scale = 1.35;
+  let fields = [];
+  let selectedFieldId = null;
+  let fieldSeq = 1;
 
-    let pdfDoc = null;
-    let currentPage = 1;
-    let scale = 1.35;
-    let fields = [];
-    let selectedFieldId = null;
-    let fieldSeq = 1;
+  const pdfFileInput = document.getElementById('pdfFile');
+  const pdfCanvas = document.getElementById('pdfCanvas');
+  const pdfStage = document.getElementById('pdfStage');
+  const overlay = document.getElementById('overlay');
+  const ctx = pdfCanvas.getContext('2d');
+  
+  // 編輯器相關 DOM (確保這些 ID 在 HTML 中存在)
+  const emptyEditor = document.getElementById('emptyEditor');
+  const editorPanel = document.getElementById('editorPanel');
+  const fieldRole = document.getElementById('fieldRole');
+  const fieldType = document.getElementById('fieldType');
+  const fieldPage = document.getElementById('fieldPage');
+  const fieldValue = document.getElementById('fieldValue');
+  const fieldWidth = document.getElementById('fieldWidth');
+  const fieldHeight = document.getElementById('fieldHeight');
+  const fieldX = document.getElementById('fieldX');
+  const fieldY = document.getElementById('fieldY');
+  const fieldList = document.getElementById('fieldList');
+  const jsonOutput = document.getElementById('jsonOutput');
 
-    // ... (保留你原本的 DOM 變數定義) ...
-    const pdfFileInput = document.getElementById('pdfFile');
-    const pdfCanvas = document.getElementById('pdfCanvas');
-    const pdfStage = document.getElementById('pdfStage');
-    const overlay = document.getElementById('overlay');
-    const ctx = pdfCanvas.getContext('2d');
-    
-    /* =========================
-       修正後的載入函數
-    ========================= */
-    pdfFileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+  /* =========================
+      3. 輔助函式
+  ========================= */
+  const uid = () => Math.random().toString(36).substr(2, 9);
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+  const getSelectedField = () => fields.find(f => f.id === selectedFieldId);
+  const getDisplayText = (f) => f.type === 'signature' ? '〔在此簽名〕' : (f.value || '〔文字欄位〕');
 
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            // 修正：使用更穩定的 getDocument 呼叫方式
-            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-            pdfDoc = await loadingTask.promise;
-            currentPage = 1;
-            renderPage(currentPage);
-        } catch (err) {
-            console.error("PDF 載入失敗: ", err);
-            alert("PDF 載入失敗，請檢查檔案格式");
-        }
-    });
+  /* =========================
+      4. 載入與渲染 PDF
+  ========================= */
+  pdfFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    async function renderPage(pageNum) {
-        if (!pdfDoc) return;
-
-        const page = await pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale });
-
-        pdfCanvas.width = viewport.width;
-        pdfCanvas.height = viewport.height;
-        
-        // 確保 overlay 跟著畫布大小連動
-        overlay.style.width = viewport.width + 'px';
-        overlay.style.height = viewport.height + 'px';
-        pdfStage.style.width = viewport.width + 'px';
-        pdfStage.style.height = viewport.height + 'px';
-
-        const renderContext = {
-            canvasContext: ctx,
-            viewport: viewport
-        };
-        
-        await page.render(renderContext).promise;
-        document.getElementById('pageInfo').textContent = `第 ${pageNum} / ${pdfDoc.numPages} 頁`;
-        renderOverlay();
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      pdfDoc = await loadingTask.promise;
+      currentPage = 1;
+      renderPage(currentPage);
+    } catch (err) {
+      console.error("PDF 載入失敗: ", err);
+      alert("PDF 載入失敗，請檢查檔案格式");
     }
+  });
+
+  async function renderPage(pageNum) {
+    if (!pdfDoc) return;
+
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+
+    // 設定畫布與容器大小
+    pdfCanvas.width = viewport.width;
+    pdfCanvas.height = viewport.height;
+    overlay.style.width = viewport.width + 'px';
+    overlay.style.height = viewport.height + 'px';
+    pdfStage.style.width = viewport.width + 'px';
+    pdfStage.style.height = viewport.height + 'px';
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    
+    await page.render(renderContext).promise;
+    document.getElementById('pageInfo').textContent = `第 ${pageNum} / ${pdfDoc.numPages} 頁`;
+    renderOverlay();
+  }
 
     /* =========================
        新增欄位
