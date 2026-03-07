@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esign 任務狀態看板 Demo</title>
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --line:#e2e8f0;
+      --text:#0f172a;
+      --sub:#64748b;
+      --primary:#2563eb;
+      --primary-soft:#dbeafe;
+      --success:#16a34a;
+      --success-soft:#dcfce7;
+      --warning:#d97706;
+      --warning-soft:#fef3c7;
+      --danger:#dc2626;
+      --danger-soft:#fee2e2;
+      --gray:#475569;
+      --gray-soft:#e2e8f0;
+      --shadow:0 10px 30px rgba(15,23,42,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Noto Sans TC","Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 260px 1fr;
+      min-height:100vh;
+    }
+
+    .sidebar{
+      background:#0f172a;
+      color:#fff;
+      padding:24px 18px;
+      border-right:1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand{
+      font-size:22px;
+      font-weight:800;
+      margin-bottom:6px;
+      letter-spacing:.02em;
+    }
+
+    .brand-sub{
+      font-size:13px;
+      color:#cbd5e1;
+      line-height:1.7;
+      margin-bottom:26px;
+    }
+
+    .nav-group{
+      margin-bottom:24px;
+    }
+
+    .nav-title{
+      font-size:12px;
+      color:#94a3b8;
+      margin-bottom:8px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .nav-item{
+      width:100%;
+      border:0;
+      background:transparent;
+      color:#e2e8f0;
+      text-align:left;
+      padding:12px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:14px;
+      margin-bottom:6px;
+    }
+
+    .nav-item.active,
+    .nav-item:hover{
+      background:rgba(255,255,255,0.08);
+    }
+
+    .main{
+      padding:24px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom:20px;
+      flex-wrap:wrap;
+    }
+
+    .page-title{
+      font-size:28px;
+      font-weight:800;
+      margin:0 0 8px;
+    }
+
+    .page-sub{
+      color:var(--sub);
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn.primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .summary-card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .summary-label{
+      color:var(--sub);
+      font-size:13px;
+      margin-bottom:10px;
+    }
+
+    .summary-value{
+      font-size:30px;
+      font-weight:800;
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .summary-note{
+      font-size:12px;
+      color:var(--sub);
+      line-height:1.6;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:20px;
+    }
+
+    .panel-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+
+    .panel-title{
+      font-size:18px;
+      font-weight:800;
+      margin:0;
+    }
+
+    .filters{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .input,
+    .select{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      background:#fff;
+      min-width:150px;
+    }
+
+    .table-wrap{
+      overflow:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1100px;
+    }
+
+    th,td{
+      padding:14px 12px;
+      border-bottom:1px solid #edf2f7;
+      text-align:left;
+      vertical-align:middle;
+      font-size:14px;
+    }
+
+    th{
+      color:var(--sub);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      background:#f8fafc;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    tr:hover td{
+      background:#fcfdff;
+    }
+
+    .case-code{
+      font-weight:800;
+      color:#0f172a;
+      margin-bottom:4px;
+    }
+
+    .case-name{
+      color:var(--sub);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .pill.created{ background:var(--primary-soft); color:var(--primary); }
+    .pill.signing{ background:var(--warning-soft); color:var(--warning); }
+    .pill.done{ background:var(--success-soft); color:var(--success); }
+    .pill.cancel{ background:var(--danger-soft); color:var(--danger); }
+    .pill.pending{ background:#f1f5f9; color:#475569; }
+
+    .progress-box{
+      min-width:180px;
+    }
+
+    .progress-top{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      font-size:12px;
+      color:var(--sub);
+      margin-bottom:6px;
+    }
+
+    .progress-bar{
+      width:100%;
+      height:10px;
+      background:#e2e8f0;
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .progress-fill{
+      height:100%;
+      background:linear-gradient(90deg, #2563eb, #16a34a);
+      border-radius:999px;
+    }
+
+    .row-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .mini-btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:#334155;
+      border-radius:8px;
+      padding:7px 10px;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .mini-btn:hover{
+      border-color:var(--primary);
+      color:var(--primary);
+    }
+
+    .child-row{
+      background:#fafcff;
+    }
+
+    .child-wrap{
+      padding:14px 0 6px;
+    }
+
+    .child-grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap:12px;
+    }
+
+    .child-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      padding:14px;
+    }
+
+    .child-code{
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .child-meta{
+      font-size:12px;
+      color:var(--sub);
+      line-height:1.7;
+      margin-bottom:10px;
+    }
+
+    .child-url{
+      font-size:12px;
+      color:var(--primary);
+      word-break:break-all;
+      background:#f8fafc;
+      border-radius:8px;
+      padding:8px;
+      margin-top:8px;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--sub);
+      padding:30px 10px;
+      font-size:14px;
+    }
+
+    @media (max-width: 1200px){
+      .summary-grid{
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+      }
+    }
+
+    @media (max-width: 900px){
+      .layout{
+        grid-template-columns: 1fr;
+      }
+      .sidebar{
+        display:none;
+      }
+      .main{
+        padding:16px;
+      }
+      .summary-grid{
+        grid-template-columns: 1fr;
+      }
+      .child-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">Esign 看板</div>
+      <div class="brand-sub">
+        院內電子簽署任務狀態展示版<br>
+        主管 Demo 用虛擬資料
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">總覽</div>
+        <button class="nav-item active">任務狀態看板</button>
+        <button class="nav-item">簽署進度</button>
+        <button class="nav-item">異常案件</button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">管理</div>
+        <button class="nav-item">案件查詢</button>
+        <button class="nav-item">URL 管理</button>
+        <button class="nav-item">PDF 下載</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">任務狀態看板</h1>
+          <div class="page-sub">
+            此頁為展示版，內含多筆虛擬案件，用於說明院內電子簽署案件的建立、追蹤、補寄與完成狀態。
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn">匯出報表</button>
+          <button class="btn">重新整理</button>
+          <button class="btn primary">新增案件</button>
+        </div>
+      </div>
+
+      <section class="summary-grid" id="summaryGrid"></section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">案件列表</h2>
+          <div class="filters">
+            <input id="searchInput" class="input" type="text" placeholder="搜尋案件編號 / 案件名稱 / 起單人">
+            <select id="statusFilter" class="select">
+              <option value="">全部狀態</option>
+              <option value="已建立">已建立</option>
+              <option value="簽署中">簽署中</option>
+              <option value="已完成">已完成</option>
+              <option value="已作廢">已作廢</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>案件資訊</th>
+                <th>起單人</th>
+                <th>建立時間</th>
+                <th>狀態</th>
+                <th>簽署進度</th>
+                <th>份數</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="caseTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const demoCases = [
+      {
+        caseId: "Esign-20260308-001",
+        caseName: "三月公關品簽領單",
+        applicantName: "王小華",
+        createdAt: "2026-03-08 08:20",
+        status: "簽署中",
+        signCount: 5,
+        fieldsCount: 4,
+        childTasks: [
+          { signId: "Esign-20260308-001-01", status: "已完成", signedAt: "2026-03-08 08:41", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-01" },
+          { signId: "Esign-20260308-001-02", status: "已完成", signedAt: "2026-03-08 08:53", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-02" },
+          { signId: "Esign-20260308-001-03", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-03" },
+          { signId: "Esign-20260308-001-04", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-04" },
+          { signId: "Esign-20260308-001-05", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-05" }
+        ]
+      },
+      {
+        caseId: "Esign-20260308-002",
+        caseName: "教學器材領用簽收單",
+        applicantName: "陳雅婷",
+        createdAt: "2026-03-08 09:05",
+        status: "已完成",
+        signCount: 3,
+        fieldsCount: 3,
+        childTasks: [
+          { signId: "Esign-20260308-002-01", status: "已完成", signedAt: "2026-03-08 09:18", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-01" },
+          { signId: "Esign-20260308-002-02", status: "已完成", signedAt: "2026-03-08 09:22", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-02" },
+          { signId: "Esign-20260308-002-03", status: "已完成", signedAt: "2026-03-08 09:35", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-03" }
+        ]
+      },
+      {
+        caseId: "Esign-20260308-003",
+        caseName: "模擬訓練教材簽領單",
+        applicantName: "林哲宇",
+        createdAt: "2026-03-08 09:40",
+        status: "已建立",
+        signCount: 4,
+        fieldsCount: 5,
+        childTasks: [
+          { signId: "Esign-20260308-003-01", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-01" },
+          { signId: "Esign-20260308-003-02", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-02" },
+          { signId: "Esign-20260308-003-03", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-03" },
+          { signId: "Esign-20260308-003-04", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-04" }
+        ]
+      },
+      {
+        caseId: "Esign-20260308-004",
+        caseName: "研究設備借用確認單",
+        applicantName: "張智維",
+        createdAt: "2026-03-08 10:10",
+        status: "簽署中",
+        signCount: 6,
+        fieldsCount: 4,
+        childTasks: [
+          { signId: "Esign-20260308-004-01", status: "已完成", signedAt: "2026-03-08 10:22", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-01" },
+          { signId: "Esign-20260308-004-02", status: "已完成", signedAt: "2026-03-08 10:28", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-02" },
+          { signId: "Esign-20260308-004-03", status: "已完成", signedAt: "2026-03-08 10:31", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-03" },
+          { signId: "Esign-20260308-004-04", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-04" },
+          { signId: "Esign-20260308-004-05", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-05" },
+          { signId: "Esign-20260308-004-06", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-06" }
+        ]
+      },
+      {
+        caseId: "Esign-20260308-005",
+        caseName: "臨床教學講義簽收表",
+        applicantName: "黃鈺婷",
+        createdAt: "2026-03-08 10:36",
+        status: "已作廢",
+        signCount: 2,
+        fieldsCount: 3,
+        childTasks: [
+          { signId: "Esign-20260308-005-01", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-005-01" },
+          { signId: "Esign-20260308-005-02", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-005-02" }
+        ]
+      },
+      {
+        caseId: "Esign-20260308-006",
+        caseName: "護理站物資簽領單",
+        applicantName: "蘇怡君",
+        createdAt: "2026-03-08 11:00",
+        status: "簽署中",
+        signCount: 8,
+        fieldsCount: 4,
+        childTasks: [
+          { signId: "Esign-20260308-006-01", status: "已完成", signedAt: "2026-03-08 11:11", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-01" },
+          { signId: "Esign-20260308-006-02", status: "已完成", signedAt: "2026-03-08 11:17", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-02" },
+          { signId: "Esign-20260308-006-03", status: "已完成", signedAt: "2026-03-08 11:19", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-03" },
+          { signId: "Esign-20260308-006-04", status: "已完成", signedAt: "2026-03-08 11:25", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-04" },
+          { signId: "Esign-20260308-006-05", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-05" },
+          { signId: "Esign-20260308-006-06", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-06" },
+          { signId: "Esign-20260308-006-07", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-07" },
+          { signId: "Esign-20260308-006-08", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-08" }
+        ]
+      }
+    ];
+
+    const summaryGrid = document.getElementById('summaryGrid');
+    const caseTableBody = document.getElementById('caseTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function getDoneCount(item){
+      return item.childTasks.filter(x => x.status === "已完成").length;
+    }
+
+    function getPendingCount(item){
+      return item.childTasks.filter(x => x.status !== "已完成").length;
+    }
+
+    function getProgress(item){
+      if(!item.signCount) return 0;
+      return Math.round((getDoneCount(item) / item.signCount) * 100);
+    }
+
+    function getStatusClass(status){
+      if(status === "已建立") return "created";
+      if(status === "簽署中") return "signing";
+      if(status === "已完成") return "done";
+      if(status === "已作廢") return "cancel";
+      return "pending";
+    }
+
+    function renderSummary(list){
+      const totalCases = list.length;
+      const totalChild = list.reduce((sum, item) => sum + item.childTasks.length, 0);
+      const totalDone = list.reduce((sum, item) => sum + getDoneCount(item), 0);
+      const totalPending = totalChild - totalDone;
+      const completedCases = list.filter(x => x.status === "已完成").length;
+
+      const cards = [
+        {
+          label: "總案件數",
+          value: totalCases,
+          note: "主案件總量，供主管掌握當日或當期電子簽署工作量。"
+        },
+        {
+          label: "總簽署份數",
+          value: totalChild,
+          note: "所有子任務加總，每一份都對應一組獨立 URL 與子編號。"
+        },
+        {
+          label: "已完成簽署",
+          value: totalDone,
+          note: `完成率 ${totalChild ? Math.round(totalDone / totalChild * 100) : 0}%`
+        },
+        {
+          label: "已完成案件",
+          value: completedCases,
+          note: `尚有 ${totalPending} 份待簽或異常需追蹤`
+        }
+      ];
+
+      summaryGrid.innerHTML = cards.map(card => `
+        <div class="summary-card">
+          <div class="summary-label">${card.label}</div>
+          <div class="summary-value">${card.value}</div>
+          <div class="summary-note">${card.note}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderCases(list){
+      if(!list.length){
+        caseTableBody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty">查無符合條件的案件。</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      caseTableBody.innerHTML = list.map((item, index) => {
+        const done = getDoneCount(item);
+        const pending = getPendingCount(item);
+        const progress = getProgress(item);
+
+        return `
+          <tr>
+            <td>
+              <div class="case-code">${item.caseId}</div>
+              <div class="case-name">${item.caseName}</div>
+            </td>
+            <td>
+              <strong>${item.applicantName}</strong><br>
+              <span style="color:#64748b; font-size:12px;">欄位 ${item.fieldsCount} 個</span>
+            </td>
+            <td>${item.createdAt}</td>
+            <td><span class="pill ${getStatusClass(item.status)}">${item.status}</span></td>
+            <td>
+              <div class="progress-box">
+                <div class="progress-top">
+                  <span>已簽 ${done}</span>
+                  <span>待簽 ${pending}</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width:${progress}%"></div>
+                </div>
+              </div>
+            </td>
+            <td>${item.signCount} 份</td>
+            <td>
+              <div class="row-actions">
+                <button class="mini-btn" onclick="toggleChildren(${index})">展開子任務</button>
+                <button class="mini-btn">查看</button>
+                <button class="mini-btn">補寄</button>
+              </div>
+            </td>
+          </tr>
+          <tr id="child-row-${index}" class="child-row" style="display:none;">
+            <td colspan="7">
+              <div class="child-wrap">
+                <div class="child-grid">
+                  ${item.childTasks.map(task => `
+                    <div class="child-card">
+                      <div class="child-code">${task.signId}</div>
+                      <div style="margin-bottom:8px;">
+                        <span class="pill ${task.status === '已完成' ? 'done' : 'pending'}">${task.status}</span>
+                      </div>
+                      <div class="child-meta">
+                        主案件：${item.caseId}<br>
+                        簽署時間：${task.signedAt || '尚未簽署'}
+                      </div>
+                      <div class="row-actions">
+                        <button class="mini-btn">複製連結</button>
+                        <button class="mini-btn">下載</button>
+                      </div>
+                      <div class="child-url">${task.signUrl}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function filterCases(){
+      const keyword = searchInput.value.trim().toLowerCase();
+      const status = statusFilter.value;
+
+      const filtered = demoCases.filter(item => {
+        const matchKeyword =
+          !keyword ||
+          item.caseId.toLowerCase().includes(keyword) ||
+          item.caseName.toLowerCase().includes(keyword) ||
+          item.applicantName.toLowerCase().includes(keyword);
+
+        const matchStatus = !status || item.status === status;
+
+        return matchKeyword && matchStatus;
+      });
+
+      renderSummary(filtered);
+      renderCases(filtered);
+    }
+
+    function toggleChildren(index){
+      const row = document.getElementById(`child-row-${index}`);
+      if(!row) return;
+      row.style.display = row.style.display === "none" ? "table-row" : "none";
+    }
+
+    window.toggleChildren = toggleChildren;
+
+    searchInput.addEventListener("input", filterCases);
+    statusFilter.addEventListener("change", filterCases);
+
+    renderSummary(demoCases);
+    renderCases(demoCases);
+  </script>
+</body>
+</html>
