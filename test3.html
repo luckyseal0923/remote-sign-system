@@ -146,7 +146,7 @@
     }
     
     #pdfCanvas { display: block; }
-    .overlay { position: absolute; inset: 0; pointer-events: none; }
+    .overlay { position: absolute; inset: 0; pointer-events: auto; }
     
     /* 框框樣式 */
     .box { 
@@ -484,36 +484,39 @@ function renderUI() {
 
 function bindBoxEvents(box, f) {
   // 點擊選中
-  box.onmousedown = (e) => {
-    if(e.target.classList.contains('resize-handle')) return;
-    selectedId = f.id;
-    renderUI();
-    
-    const container = stageWrap.getBoundingClientRect();
-    const offsetX = e.clientX - box.getBoundingClientRect().left;
-    const offsetY = e.clientY - box.getBoundingClientRect().top;
+box.onmousedown = (e) => {
 
-    const onMove = (me) => {
-      let nx = me.clientX - container.left - offsetX;
-      let ny = me.clientY - container.top - offsetY;
-      
-      // 邊界限制
-      nx = Math.max(0, Math.min(nx, container.width - f.w));
-      ny = Math.max(0, Math.min(ny, container.height - f.h));
+  if(e.target.classList.contains('resize-handle')) return;
 
-      f.x = nx; f.y = ny;
-      box.style.left = nx + 'px';
-      box.style.top = ny + 'px';
-    };
+  selectedId = f.id;
+  renderUI();
 
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
+  const offsetX = e.clientX - box.offsetLeft;
+  const offsetY = e.clientY - box.offsetTop;
 
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+  const onMove = (me) => {
+
+    let nx = me.clientX - stageWrap.offsetLeft - offsetX;
+    let ny = me.clientY - stageWrap.offsetTop - offsetY;
+
+    nx = Math.max(0, Math.min(nx, stageWrap.clientWidth - f.w));
+    ny = Math.max(0, Math.min(ny, stageWrap.clientHeight - f.h));
+
+    f.x = nx;
+    f.y = ny;
+
+    box.style.left = nx + 'px';
+    box.style.top = ny + 'px';
   };
+
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+};
 
   // 縮放功能
   const resizeHandle = box.querySelector('.resize-handle');
