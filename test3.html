@@ -99,134 +99,407 @@
 </main>
   
 <script type="module">
-  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
-  let pdfDoc = null, currPage = 1, fields = [], selectedId = null;
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
 
-  // PDF 載入
-  document.getElementById('pdfFile').onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const arrayBuffer = await file.arrayBuffer();
-    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    document.getElementById('navUi').style.display = 'flex';
-    renderPage(1);
-  };
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
-  async function renderPage(num) {
-    currPage = num;
-    const page = await pdfDoc.getPage(num);
-    const viewport = page.getViewport({ scale: 1.35 });
-    const canvas = document.getElementById('pdfCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = viewport.width; canvas.height = viewport.height;
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    
-    document.getElementById('stageWrap').style.width = viewport.width + 'px';
-    document.getElementById('overlay').style.width = viewport.width + 'px';
-    document.getElementById('overlay').style.height = viewport.height + 'px';
-    document.getElementById('pageInfo').textContent = `${num} / ${pdfDoc.numPages}`;
-    renderUI();
+
+/* =========================
+   全域狀態
+========================= */
+
+let pdfDoc = null
+let currPage = 1
+let fields = []
+let selectedId = null
+
+const canvas = document.getElementById('pdfCanvas')
+const overlay = document.getElementById('overlay')
+const stageWrap = document.getElementById('stageWrap')
+
+const prefillList = document.getElementById('prefillList')
+const signList = document.getElementById('signList')
+
+
+
+/* =========================
+   PDF 載入
+========================= */
+
+document.getElementById('pdfFile').onchange = async (e) => {
+
+  const file = e.target.files[0]
+  if(!file) return
+
+  const buffer = await file.arrayBuffer()
+
+  pdfDoc = await pdfjsLib.getDocument({
+    data: buffer
+  }).promise
+
+  document.getElementById('navUi').style.display = 'flex'
+
+  renderPage(1)
+}
+
+
+
+/* =========================
+   PDF render
+========================= */
+
+async function renderPage(num){
+
+  currPage = num
+
+  const page = await pdfDoc.getPage(num)
+
+  const viewport = page.getViewport({
+    scale:1.35
+  })
+
+  const ctx = canvas.getContext('2d')
+
+  canvas.width = viewport.width
+  canvas.height = viewport.height
+
+  await page.render({
+    canvasContext:ctx,
+    viewport
+  }).promise
+
+
+  stageWrap.style.width = viewport.width + 'px'
+  overlay.style.width = viewport.width + 'px'
+  overlay.style.height = viewport.height + 'px'
+
+  document.getElementById('pageInfo').textContent =
+  `${num} / ${pdfDoc.numPages}`
+
+  renderUI()
+}
+
+
+
+/* =========================
+   新增欄位
+========================= */
+
+function addField(type){
+
+  if(!pdfDoc){
+    alert('請先上傳PDF')
+    return
   }
 
-  function addField(type) {
-    if (!pdfDoc) return alert('請先上傳 PDF');
-    const id = Date.now().toString();
-    fields.push({
-      id, type, page: currPage,
-      x: 100, y: 100, w: 160, h: 45,
-      content: type === 'sig' ? '請在此簽名' : (type === 'txt' ? '請輸入文字' : '預填內容')
-    });
-    selectedId = id;
-    renderUI();
-  }
+  const id = crypto.randomUUID()
 
-  function renderUI() {
-    const overlay = document.getElementById('overlay');
-    const preList = document.getElementById('prefillList');
-    const signList = document.getElementById('signList');
-    overlay.innerHTML = ''; preList.innerHTML = ''; signList.innerHTML = '';
+  fields.push({
 
-    fields.forEach((f, i) => {
-      const num = i + 1;
-      
-      // 1. PDF 上的框框渲染
-      if (f.page === currPage) {
-        const box = document.createElement('div');
-        box.className = `box type-${f.type} ${f.id === selectedId ? 'active' : ''}`;
-        box.style.cssText = `left:${f.x}px; top:${f.y}px; width:${f.w}px; height:${f.h}px;`;
-        box.innerHTML = `
-          <span class="box-num">${num}</span>
-          <div class="box-content">${f.content}</div>
-          <div class="del-icon" onclick="removeField('${f.id}')">×</div>
-        `;
+    id,
+    type,
+    page:currPage,
 
-        // 拖移邏輯 (修正衝突，確保點擊可選中)
-        box.onmousedown = (e) => {
-          e.stopPropagation();
-          selectedId = f.id;
-          renderUI();
-          
-          let shiftX = e.clientX - box.getBoundingClientRect().left;
-          let shiftY = e.clientY - box.getBoundingClientRect().top;
+    x:100,
+    y:100,
+    w:160,
+    h:45,
 
-          function moveAt(pageX, pageY) {
-            const containerRect = document.getElementById('stageWrap').getBoundingClientRect();
-            f.x = pageX - containerRect.left - shiftX;
-            f.y = pageY - containerRect.top - shiftY;
-            box.style.left = f.x + 'px';
-            box.style.top = f.y + 'px';
-          }
+    content:
+      type==="sig" ? "請在此簽名":
+      type==="txt" ? "請輸入文字":
+      "預填內容"
 
-          function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
-          document.addEventListener('mousemove', onMouseMove);
-          document.onmouseup = () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.onmouseup = null;
-          };
-        };
-        overlay.appendChild(box);
+  })
+
+  selectedId=id
+
+  renderUI()
+}
+
+
+
+/* =========================
+   UI render
+========================= */
+
+function renderUI(){
+
+  overlay.innerHTML=''
+  prefillList.innerHTML=''
+  signList.innerHTML=''
+
+  fields.forEach((f,i)=>{
+
+    const num=i+1
+
+    /* ===== PDF box ===== */
+
+    if(f.page===currPage){
+
+      const box=document.createElement('div')
+
+      box.className=`box type-${f.type}`
+      if(f.id===selectedId) box.classList.add('active')
+
+      box.style.left=f.x+'px'
+      box.style.top=f.y+'px'
+      box.style.width=f.w+'px'
+      box.style.height=f.h+'px'
+
+      box.dataset.id=f.id
+
+      box.innerHTML=`
+
+      <span class="box-num">${num}</span>
+      <div class="box-content">${f.content}</div>
+      <div class="del-icon">×</div>
+      <div class="resize"></div>
+
+      `
+
+      overlay.appendChild(box)
+
+      initDrag(box,f)
+      initResize(box,f)
+
+      box.querySelector('.del-icon').onclick=()=>{
+        removeField(f.id)
       }
 
-      // 2. 左側清單渲染
-      const item = document.createElement('div');
-      item.className = `field-item ${f.id === selectedId ? 'active' : ''}`;
-      const labelName = f.type === 'prefill' ? '預填文字' : (f.type === 'sig' ? '簽名提示' : '文字提示');
-      
-      item.innerHTML = `
-        <label>[${num}] ${labelName} (第 ${f.page} 頁)</label>
-        <input type="text" value="${f.content}" onfocus="selectedId='${f.id}'; renderUI();" oninput="updateContent('${f.id}', this.value)">
-      `;
-      
-      if (f.type === 'prefill') preList.appendChild(item);
-      else signList.appendChild(item);
-    });
+    }
+
+
+
+    /* ===== sidebar ===== */
+
+    const item=document.createElement('div')
+
+    item.className='field-item'
+
+    if(f.id===selectedId)
+      item.classList.add('active')
+
+    const labelName=
+      f.type==="prefill" ? "預填文字":
+      f.type==="sig" ? "簽名提示":
+      "文字提示"
+
+    item.innerHTML=`
+
+    <label>[${num}] ${labelName} (第${f.page}頁)</label>
+    <input value="${f.content}">
+
+    `
+
+    const input=item.querySelector('input')
+
+    input.onfocus=()=>{
+      selectedId=f.id
+      renderUI()
+    }
+
+    input.oninput=(e)=>{
+      f.content=e.target.value
+      updateBoxText(f.id,f.content)
+    }
+
+    if(f.type==="prefill")
+      prefillList.appendChild(item)
+    else
+      signList.appendChild(item)
+
+  })
+
+}
+
+
+
+/* =========================
+   更新文字
+========================= */
+
+function updateBoxText(id,val){
+
+  const box=document.querySelector(`[data-id="${id}"]`)
+  if(!box) return
+
+  const div=box.querySelector('.box-content')
+  div.textContent=val
+
+}
+
+
+
+/* =========================
+   拖曳
+========================= */
+
+function initDrag(box,f){
+
+  box.onmousedown=(e)=>{
+
+    if(e.target.classList.contains('resize')) return
+
+    selectedId=f.id
+    renderUI()
+
+    const rect=box.getBoundingClientRect()
+    const offsetX=e.clientX-rect.left
+    const offsetY=e.clientY-rect.top
+
+    const container=stageWrap.getBoundingClientRect()
+
+    function move(e){
+
+      let x=e.clientX-container.left-offsetX
+      let y=e.clientY-container.top-offsetY
+
+      x=Math.max(0,Math.min(x,container.width-f.w))
+      y=Math.max(0,Math.min(y,container.height-f.h))
+
+      f.x=x
+      f.y=y
+
+      box.style.left=x+'px'
+      box.style.top=y+'px'
+
+    }
+
+    document.onmousemove=move
+
+    document.onmouseup=()=>{
+      document.onmousemove=null
+      document.onmouseup=null
+    }
+
   }
 
-  window.updateContent = (id, val) => {
-    const f = fields.find(x => x.id === id);
-    if (f) f.content = val;
-    // 同步更新 PDF 上的文字，但不重新 renderUI 避免失去焦點
-    const boxes = document.querySelectorAll('.box');
-    fields.forEach((field, idx) => {
-        if(field.id === id && field.page === currPage) {
-            const contentDiv = document.querySelectorAll('.box-content')[idx % boxes.length];
-            if(contentDiv) contentDiv.textContent = val;
-        }
-    });
-  };
+}
 
-  window.removeField = (id) => {
-    fields = fields.filter(x => x.id !== id);
-    renderUI();
-  };
 
-  document.getElementById('addPrefill').onclick = () => addField('prefill');
-  document.getElementById('addSig').onclick = () => addField('sig');
-  document.getElementById('addTxt').onclick = () => addField('txt');
-  document.getElementById('prev').onclick = () => currPage > 1 && renderPage(currPage - 1);
-  document.getElementById('next').onclick = () => currPage < pdfDoc.numPages && renderPage(currPage + 1);
+
+/* =========================
+   resize
+========================= */
+
+function initResize(box,f){
+
+  const handle=box.querySelector('.resize')
+
+  handle.style.position='absolute'
+  handle.style.right='0'
+  handle.style.bottom='0'
+  handle.style.width='12px'
+  handle.style.height='12px'
+  handle.style.background='#2563eb'
+  handle.style.cursor='nwse-resize'
+
+  handle.onmousedown=(e)=>{
+
+    e.stopPropagation()
+
+    const startX=e.clientX
+    const startY=e.clientY
+
+    const startW=f.w
+    const startH=f.h
+
+    function move(e){
+
+      f.w=Math.max(80,startW+(e.clientX-startX))
+      f.h=Math.max(30,startH+(e.clientY-startY))
+
+      box.style.width=f.w+'px'
+      box.style.height=f.h+'px'
+
+    }
+
+    document.onmousemove=move
+
+    document.onmouseup=()=>{
+      document.onmousemove=null
+      document.onmouseup=null
+    }
+
+  }
+
+}
+
+
+
+/* =========================
+   刪除
+========================= */
+
+function removeField(id){
+
+  fields=fields.filter(f=>f.id!==id)
+
+  renderUI()
+
+}
+
+
+
+/* =========================
+   JSON export
+========================= */
+
+window.exportJSON=()=>{
+
+  const data=JSON.stringify(fields,null,2)
+
+  const blob=new Blob([data],{type:'application/json'})
+  const url=URL.createObjectURL(blob)
+
+  const a=document.createElement('a')
+  a.href=url
+  a.download='signature-template.json'
+  a.click()
+
+}
+
+
+
+/* =========================
+   JSON import
+========================= */
+
+window.importJSON=(file)=>{
+
+  const reader=new FileReader()
+
+  reader.onload=e=>{
+    fields=JSON.parse(e.target.result)
+    renderUI()
+  }
+
+  reader.readAsText(file)
+
+}
+
+
+
+/* =========================
+   buttons
+========================= */
+
+document.getElementById('addPrefill').onclick=()=>addField('prefill')
+document.getElementById('addSig').onclick=()=>addField('sig')
+document.getElementById('addTxt').onclick=()=>addField('txt')
+
+document.getElementById('prev').onclick=
+()=>currPage>1 && renderPage(currPage-1)
+
+document.getElementById('next').onclick=
+()=>currPage<pdfDoc.numPages && renderPage(currPage+1)
+
+
+
+</script>
 </script>
 
 </body>
