@@ -1,16 +1,131 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<title>PDF.js 測試 Page</title>
-<script src="https://unpkg.com/pdfjs-dist@4.8.270/build/pdf.min.js"></script>
-<script>
-  window.onload = () => {
-    console.log('pdfjsLib:', window['pdfjs-dist/build/pdf']);
-  };
-</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>極簡 PDF 簽名定位</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+
+  <style>
+    body { font-family: sans-serif; background: #f0f2f5; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    .toolbar { background: #fff; padding: 15px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; align-items: center; }
+    .main-content { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; }
+    
+    .pdf-container { position: relative; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    #pdfCanvas { display: block; }
+    .overlay { position: absolute; inset: 0; pointer-events: none; }
+    
+    /* 簽名框樣式 */
+    .sig-box {
+      position: absolute; width: 150px; height: 60px;
+      border: 2px solid #2563eb; background: rgba(37, 99, 235, 0.1);
+      cursor: move; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #2563eb;
+    }
+    .json-preview { position: fixed; bottom: 20px; right: 20px; width: 250px; background: #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 11px; opacity: 0.9; }
+  </style>
 </head>
 <body>
-  <h1>PDF.js 測試頁</h1>
+
+  <div class="toolbar">
+    <input type="file" id="pdfFile" accept="application/pdf" />
+    <button id="addBoxBtn">＋ 新增簽名框</button>
+    <span id="pageInfo">未載入</span>
+  </div>
+
+  <div class="main-content">
+    <div class="pdf-container" id="pdfStage">
+      <canvas id="pdfCanvas"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+  </div>
+
+  <div class="json-preview">
+    <strong>座標資料 (JSON):</strong>
+    <pre id="jsonOutput">[]</pre>
+  </div>
+
+  <script type="module">
+    // 引入 PDF.js
+    import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+
+    let pdfDoc = null;
+    let fields = [];
+    const scale = 1.5;
+
+    const pdfFileInput = document.getElementById('pdfFile');
+    const pdfCanvas = document.getElementById('pdfCanvas');
+    const overlay = document.getElementById('overlay');
+    const ctx = pdfCanvas.getContext('2d');
+    const jsonOutput = document.getElementById('jsonOutput');
+
+    // 1. 上傳並即時顯示 PDF
+    pdfFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const arrayBuffer = await file.arrayBuffer();
+      pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      renderPage(1);
+    });
+
+    async function renderPage(pageNum) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+
+      pdfCanvas.width = viewport.width;
+      pdfCanvas.height = viewport.height;
+      overlay.style.width = viewport.width + 'px';
+      overlay.style.height = viewport.height + 'px';
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      document.getElementById('pageInfo').textContent = `第 ${pageNum} 頁 / 共 ${pdfDoc.numPages} 頁`;
+    }
+
+    // 2. 新增簽名框
+    document.getElementById('addBoxBtn').addEventListener('click', () => {
+      if (!pdfDoc) return alert("請先上傳 PDF");
+      const id = Date.now();
+      const newField = { id, x: 50, y: 50, w: 150, h: 60 };
+      fields.push(newField);
+      drawOverlay();
+    });
+
+    function drawOverlay() {
+      overlay.innerHTML = '';
+      fields.forEach(field => {
+        const box = document.createElement('div');
+        box.className = 'sig-box';
+        box.style.left = field.x + 'px';
+        box.style.top = field.y + 'px';
+        box.textContent = '簽名處';
+        
+        // 拖拽邏輯
+        box.onmousedown = (e) => {
+          const startX = e.clientX - field.x;
+          const startY = e.clientY - field.y;
+          
+          document.onmousemove = (moveE) => {
+            field.x = moveE.clientX - startX;
+            field.y = moveE.clientY - startY;
+            box.style.left = field.x + 'px';
+            box.style.top = field.y + 'px';
+            updateJson();
+          };
+          document.onmouseup = () => {
+            document.onmousemove = null;
+          };
+        };
+        
+        overlay.appendChild(box);
+      });
+      updateJson();
+    }
+
+    function updateJson() {
+      jsonOutput.textContent = JSON.stringify(fields, null, 2);
+    }
+  </script>
 </body>
 </html>
