@@ -25,6 +25,7 @@
     }
 
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       font-family:"Noto Sans TC","Segoe UI",sans-serif;
@@ -33,60 +34,7 @@
     }
 
     .layout{
-      display:grid;
-      grid-template-columns: 260px 1fr;
       min-height:100vh;
-    }
-
-    .sidebar{
-      background:#0f172a;
-      color:#fff;
-      padding:24px 18px;
-      border-right:1px solid rgba(255,255,255,0.08);
-    }
-
-    .brand{
-      font-size:22px;
-      font-weight:800;
-      margin-bottom:6px;
-      letter-spacing:.02em;
-    }
-
-    .brand-sub{
-      font-size:13px;
-      color:#cbd5e1;
-      line-height:1.7;
-      margin-bottom:26px;
-    }
-
-    .nav-group{
-      margin-bottom:24px;
-    }
-
-    .nav-title{
-      font-size:12px;
-      color:#94a3b8;
-      margin-bottom:8px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-
-    .nav-item{
-      width:100%;
-      border:0;
-      background:transparent;
-      color:#e2e8f0;
-      text-align:left;
-      padding:12px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:14px;
-      margin-bottom:6px;
-    }
-
-    .nav-item.active,
-    .nav-item:hover{
-      background:rgba(255,255,255,0.08);
     }
 
     .main{
@@ -137,9 +85,19 @@
       border-color:var(--primary);
     }
 
+    .btn:hover{
+      border-color:var(--primary);
+      color:var(--primary);
+    }
+
+    .btn.primary:hover{
+      color:#fff;
+      opacity:.95;
+    }
+
     .summary-grid{
       display:grid;
-      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      grid-template-columns:repeat(4, minmax(180px, 1fr));
       gap:16px;
       margin-bottom:22px;
     }
@@ -202,12 +160,17 @@
     }
 
     .input,
-    .select{
+    .select,
+    .auth-field input{
       border:1px solid var(--line);
       border-radius:10px;
       padding:10px 12px;
       font-size:14px;
       background:#fff;
+    }
+
+    .input,
+    .select{
       min-width:150px;
     }
 
@@ -218,7 +181,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width:1100px;
+      min-width:980px;
     }
 
     th,td{
@@ -322,6 +285,12 @@
       color:var(--primary);
     }
 
+    .mini-btn.primary-action{
+      border-color:var(--primary);
+      color:var(--primary);
+      background:var(--primary-soft);
+    }
+
     .child-row{
       background:#fafcff;
     }
@@ -332,7 +301,7 @@
 
     .child-grid{
       display:grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      grid-template-columns:repeat(3, minmax(220px, 1fr));
       gap:12px;
     }
 
@@ -373,68 +342,113 @@
       font-size:14px;
     }
 
+    .auth-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:999;
+    }
+
+    .auth-overlay.show{
+      display:flex;
+    }
+
+    .auth-modal{
+      width:100%;
+      max-width:420px;
+      background:#fff;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:20px;
+      border:1px solid var(--line);
+    }
+
+    .auth-modal-title{
+      font-size:20px;
+      font-weight:800;
+      margin:0 0 8px;
+    }
+
+    .auth-modal-sub{
+      font-size:13px;
+      color:var(--sub);
+      line-height:1.7;
+      margin-bottom:16px;
+    }
+
+    .auth-form{
+      display:grid;
+      gap:12px;
+    }
+
+    .auth-field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .auth-field label{
+      font-size:12px;
+      font-weight:700;
+      color:var(--sub);
+    }
+
+    .auth-actions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+
+    .auth-message{
+      display:none;
+      margin-top:12px;
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:13px;
+      line-height:1.6;
+      background:var(--danger-soft);
+      color:var(--danger);
+    }
+
+    .auth-message.show{
+      display:block;
+    }
+
     @media (max-width: 1200px){
       .summary-grid{
-        grid-template-columns: repeat(2, minmax(180px, 1fr));
+        grid-template-columns:repeat(2, minmax(180px, 1fr));
       }
     }
 
     @media (max-width: 900px){
-      .layout{
-        grid-template-columns: 1fr;
-      }
-      .sidebar{
-        display:none;
+      .main{
+        padding:16px;
       }
       .main{
         padding:16px;
       }
-      .summary-grid{
-        grid-template-columns: 1fr;
-      }
+      .summary-grid,
       .child-grid{
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
       }
     }
   </style>
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="brand">Esign 看板</div>
-      <div class="brand-sub">
-        院內電子簽署任務狀態展示版<br>
-        主管 Demo 用虛擬資料
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-title">總覽</div>
-        <button class="nav-item active">任務狀態看板</button>
-        <button class="nav-item">簽署進度</button>
-        <button class="nav-item">異常案件</button>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-title">管理</div>
-        <button class="nav-item">案件查詢</button>
-        <button class="nav-item">URL 管理</button>
-        <button class="nav-item">PDF 下載</button>
-      </div>
-    </aside>
-
     <main class="main">
       <div class="topbar">
         <div>
-          <h1 class="page-title">任務狀態看板</h1>
+          <h1 class="page-title">E-Sign 遠端簽核管理系統</h1>
           <div class="page-sub">
-            此頁為展示版，內含多筆虛擬案件，用於說明院內電子簽署案件的建立、追蹤、補寄與完成狀態。
+            協助使用者集中管理遠端簽核案件，支援案件建立後之進度追蹤、簽署狀態檢視、子任務管理與權限驗證操作，提升電子簽核作業效率與管理便利性。
           </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn">匯出報表</button>
-          <button class="btn">重新整理</button>
-          <button class="btn primary">新增案件</button>
         </div>
       </div>
 
@@ -449,7 +463,8 @@
               <option value="">全部狀態</option>
               <option value="已建立">已建立</option>
               <option value="簽署中">簽署中</option>
-              <option value="已完成">已完成</option>
+              <option value="簽署完成">簽署完成</option>
+              <option value="已結案">已結案</option>
               <option value="已作廢">已作廢</option>
             </select>
           </div>
@@ -464,7 +479,6 @@
                 <th>建立時間</th>
                 <th>狀態</th>
                 <th>簽署進度</th>
-                <th>份數</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -475,100 +489,149 @@
     </main>
   </div>
 
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-modal">
+      <h3 class="auth-modal-title">驗證登入</h3>
+      <div class="auth-modal-sub">
+        請輸入該案件對應的員編、生日與密碼，驗證成功後才會開啟該案件操作功能。
+      </div>
+
+      <div class="auth-form">
+        <div class="auth-field">
+          <label for="authStaffId">員編</label>
+          <input id="authStaffId" type="text" placeholder="請輸入員編">
+        </div>
+        <div class="auth-field">
+          <label for="authBirth">生日</label>
+          <input id="authBirth" type="text" placeholder="例如：19850923">
+        </div>
+        <div class="auth-field">
+          <label for="authPassword">密碼</label>
+          <input id="authPassword" type="password" placeholder="請輸入密碼">
+        </div>
+      </div>
+
+      <div id="authMessage" class="auth-message"></div>
+
+      <div class="auth-actions">
+        <button class="btn" type="button" onclick="closeAuthModal()">取消</button>
+        <button class="btn primary" type="button" onclick="submitAuth()">登入驗證</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const demoCases = [
       {
-        caseId: "Esign-20260308-001",
-        caseName: "三月公關品簽領單",
-        applicantName: "王小華",
-        createdAt: "2026-03-08 08:20",
-        status: "簽署中",
+        caseId: 'Esign-20260308-001',
+        caseName: '三月公關品簽領單',
+        applicantName: '王小華',
+        createdAt: '2026-03-08 08:20',
+        status: '簽署中',
         signCount: 5,
         fieldsCount: 4,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-001-01", status: "已完成", signedAt: "2026-03-08 08:41", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-01" },
-          { signId: "Esign-20260308-001-02", status: "已完成", signedAt: "2026-03-08 08:53", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-02" },
-          { signId: "Esign-20260308-001-03", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-03" },
-          { signId: "Esign-20260308-001-04", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-04" },
-          { signId: "Esign-20260308-001-05", status: "未簽",   signedAt: "",                  signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-001-05" }
+          { signId: 'Esign-20260308-001-01', status: '簽署完成', signedAt: '2026-03-08 08:41', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-001-01' },
+          { signId: 'Esign-20260308-001-02', status: '已完成', signedAt: '2026-03-08 08:53', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-001-02' },
+          { signId: 'Esign-20260308-001-03', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-001-03' },
+          { signId: 'Esign-20260308-001-04', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-001-04' },
+          { signId: 'Esign-20260308-001-05', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-001-05' }
         ]
       },
       {
-        caseId: "Esign-20260308-002",
-        caseName: "教學器材領用簽收單",
-        applicantName: "陳雅婷",
-        createdAt: "2026-03-08 09:05",
-        status: "已完成",
+        caseId: 'Esign-20260308-002',
+        caseName: '教學器材領用簽收單',
+        applicantName: '陳雅婷',
+        createdAt: '2026-03-08 09:05',
+        status: '已完成',
         signCount: 3,
         fieldsCount: 3,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-002-01", status: "已完成", signedAt: "2026-03-08 09:18", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-01" },
-          { signId: "Esign-20260308-002-02", status: "已完成", signedAt: "2026-03-08 09:22", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-02" },
-          { signId: "Esign-20260308-002-03", status: "已完成", signedAt: "2026-03-08 09:35", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-002-03" }
+          { signId: 'Esign-20260308-002-01', status: '已完成', signedAt: '2026-03-08 09:18', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-002-01' },
+          { signId: 'Esign-20260308-002-02', status: '已完成', signedAt: '2026-03-08 09:22', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-002-02' },
+          { signId: 'Esign-20260308-002-03', status: '已完成', signedAt: '2026-03-08 09:35', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-002-03' }
         ]
       },
       {
-        caseId: "Esign-20260308-003",
-        caseName: "模擬訓練教材簽領單",
-        applicantName: "林哲宇",
-        createdAt: "2026-03-08 09:40",
-        status: "已建立",
+        caseId: 'Esign-20260308-003',
+        caseName: '模擬訓練教材簽領單',
+        applicantName: '林哲宇',
+        createdAt: '2026-03-08 09:40',
+        status: '已建立',
         signCount: 4,
         fieldsCount: 5,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-003-01", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-01" },
-          { signId: "Esign-20260308-003-02", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-02" },
-          { signId: "Esign-20260308-003-03", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-03" },
-          { signId: "Esign-20260308-003-04", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-003-04" }
+          { signId: 'Esign-20260308-003-01', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-003-01' },
+          { signId: 'Esign-20260308-003-02', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-003-02' },
+          { signId: 'Esign-20260308-003-03', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-003-03' },
+          { signId: 'Esign-20260308-003-04', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-003-04' }
         ]
       },
       {
-        caseId: "Esign-20260308-004",
-        caseName: "研究設備借用確認單",
-        applicantName: "張智維",
-        createdAt: "2026-03-08 10:10",
-        status: "簽署中",
+        caseId: 'Esign-20260308-004',
+        caseName: '研究設備借用確認單',
+        applicantName: '張智維',
+        createdAt: '2026-03-08 10:10',
+        status: '簽署中',
         signCount: 6,
         fieldsCount: 4,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-004-01", status: "已完成", signedAt: "2026-03-08 10:22", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-01" },
-          { signId: "Esign-20260308-004-02", status: "已完成", signedAt: "2026-03-08 10:28", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-02" },
-          { signId: "Esign-20260308-004-03", status: "已完成", signedAt: "2026-03-08 10:31", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-03" },
-          { signId: "Esign-20260308-004-04", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-04" },
-          { signId: "Esign-20260308-004-05", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-05" },
-          { signId: "Esign-20260308-004-06", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-004-06" }
+          { signId: 'Esign-20260308-004-01', status: '已完成', signedAt: '2026-03-08 10:22', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-01' },
+          { signId: 'Esign-20260308-004-02', status: '已完成', signedAt: '2026-03-08 10:28', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-02' },
+          { signId: 'Esign-20260308-004-03', status: '已完成', signedAt: '2026-03-08 10:31', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-03' },
+          { signId: 'Esign-20260308-004-04', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-04' },
+          { signId: 'Esign-20260308-004-05', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-05' },
+          { signId: 'Esign-20260308-004-06', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-004-06' }
         ]
       },
       {
-        caseId: "Esign-20260308-005",
-        caseName: "臨床教學講義簽收表",
-        applicantName: "黃鈺婷",
-        createdAt: "2026-03-08 10:36",
-        status: "已作廢",
+        caseId: 'Esign-20260308-005',
+        caseName: '臨床教學講義簽收表',
+        applicantName: '黃鈺婷',
+        createdAt: '2026-03-08 10:36',
+        status: '已作廢',
         signCount: 2,
         fieldsCount: 3,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-005-01", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-005-01" },
-          { signId: "Esign-20260308-005-02", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-005-02" }
+          { signId: 'Esign-20260308-005-01', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-005-01' },
+          { signId: 'Esign-20260308-005-02', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-005-02' }
         ]
       },
       {
-        caseId: "Esign-20260308-006",
-        caseName: "護理站物資簽領單",
-        applicantName: "蘇怡君",
-        createdAt: "2026-03-08 11:00",
-        status: "簽署中",
+        caseId: 'Esign-20260308-006',
+        caseName: '護理站物資簽領單',
+        applicantName: '蘇怡君',
+        createdAt: '2026-03-08 11:00',
+        status: '簽署中',
         signCount: 8,
         fieldsCount: 4,
+        staffId: '104114',
+        birthDate: '19850923',
+        password: '84384131',
         childTasks: [
-          { signId: "Esign-20260308-006-01", status: "已完成", signedAt: "2026-03-08 11:11", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-01" },
-          { signId: "Esign-20260308-006-02", status: "已完成", signedAt: "2026-03-08 11:17", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-02" },
-          { signId: "Esign-20260308-006-03", status: "已完成", signedAt: "2026-03-08 11:19", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-03" },
-          { signId: "Esign-20260308-006-04", status: "已完成", signedAt: "2026-03-08 11:25", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-04" },
-          { signId: "Esign-20260308-006-05", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-05" },
-          { signId: "Esign-20260308-006-06", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-06" },
-          { signId: "Esign-20260308-006-07", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-07" },
-          { signId: "Esign-20260308-006-08", status: "未簽", signedAt: "", signUrl: "https://esign.demo/sign.html?signId=Esign-20260308-006-08" }
+          { signId: 'Esign-20260308-006-01', status: '已完成', signedAt: '2026-03-08 11:11', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-01' },
+          { signId: 'Esign-20260308-006-02', status: '已完成', signedAt: '2026-03-08 11:17', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-02' },
+          { signId: 'Esign-20260308-006-03', status: '已完成', signedAt: '2026-03-08 11:19', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-03' },
+          { signId: 'Esign-20260308-006-04', status: '已完成', signedAt: '2026-03-08 11:25', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-04' },
+          { signId: 'Esign-20260308-006-05', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-05' },
+          { signId: 'Esign-20260308-006-06', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-06' },
+          { signId: 'Esign-20260308-006-07', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-07' },
+          { signId: 'Esign-20260308-006-08', status: '未簽', signedAt: '', signUrl: 'https://esign.demo/sign.html?signId=Esign-20260308-006-08' }
         ]
       }
     ];
@@ -577,13 +640,25 @@
     const caseTableBody = document.getElementById('caseTableBody');
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
+    const authOverlay = document.getElementById('authOverlay');
+    const authStaffId = document.getElementById('authStaffId');
+    const authBirth = document.getElementById('authBirth');
+    const authPassword = document.getElementById('authPassword');
+    const authMessage = document.getElementById('authMessage');
+
+    const DEFAULT_AUTH_STAFF_ID = '104114';
+    const DEFAULT_AUTH_BIRTH = '19850923';
+    const DEFAULT_AUTH_PASSWORD = '84384131';
+
+    const verifiedCaseIds = new Set();
+    let activeAuthCaseId = '';
 
     function getDoneCount(item){
-      return item.childTasks.filter(x => x.status === "已完成").length;
+      return item.childTasks.filter(x => x.status === '已完成').length;
     }
 
     function getPendingCount(item){
-      return item.childTasks.filter(x => x.status !== "已完成").length;
+      return item.childTasks.filter(x => x.status !== '已完成').length;
     }
 
     function getProgress(item){
@@ -592,11 +667,48 @@
     }
 
     function getStatusClass(status){
-      if(status === "已建立") return "created";
-      if(status === "簽署中") return "signing";
-      if(status === "已完成") return "done";
-      if(status === "已作廢") return "cancel";
-      return "pending";
+      if(status === '已建立') return 'created';
+      if(status === '簽署中') return 'signing';
+      if(status === '已完成' || status === '簽署完成' || status === '已結案') return 'done';
+      if(status === '已作廢') return 'cancel';
+      return 'pending';
+    }
+
+    function formatDateDisplay(value){
+      if(!value) return '—';
+      return String(value).replace(/-/g, '/');
+    }
+
+    function getDisplayStatus(item){
+      const progress = getProgress(item);
+      if (item.status === '簽署中' && progress === 100) return '已結案';
+      if (item.status === '簽署完成') return '簽署完成';
+      if (item.status === '已完成') return '已結案';
+      return item.status;
+    }
+
+    function getCaseAuthConfig(item){
+      return {
+        staffId: item.staffId || DEFAULT_AUTH_STAFF_ID,
+        birth: item.birthDate || DEFAULT_AUTH_BIRTH,
+        password: item.password || DEFAULT_AUTH_PASSWORD
+      };
+    }
+
+    function isCaseVerified(caseId){
+      return verifiedCaseIds.has(caseId);
+    }
+
+    function getActionButtons(item, index){
+      if (!isCaseVerified(item.caseId)) {
+        return `<button class="mini-btn primary-action" onclick="openAuthModal('${item.caseId}')">驗證登入</button>`;
+      }
+
+      return `
+        <button class="mini-btn" onclick="toggleChildren(${index}, '${item.caseId}')">展開子任務</button>
+        <button class="mini-btn">結案</button>
+        <button class="mini-btn">刪除</button>
+      `;
     }
 
     function renderSummary(list){
@@ -604,26 +716,26 @@
       const totalChild = list.reduce((sum, item) => sum + item.childTasks.length, 0);
       const totalDone = list.reduce((sum, item) => sum + getDoneCount(item), 0);
       const totalPending = totalChild - totalDone;
-      const completedCases = list.filter(x => x.status === "已完成").length;
+      const completedCases = list.filter(x => ['簽署完成', '已結案'].includes(getDisplayStatus(x))).length;
 
       const cards = [
         {
-          label: "總案件數",
+          label: '總案件數',
           value: totalCases,
-          note: "主案件總量，供主管掌握當日或當期電子簽署工作量。"
+          note: '主案件總量，供主管掌握當日或當期電子簽署工作量。'
         },
         {
-          label: "總簽署份數",
+          label: '總簽署份數',
           value: totalChild,
-          note: "所有子任務加總，每一份都對應一組獨立 URL 與子編號。"
+          note: '所有子任務加總，每一份都對應一組獨立 URL 與子編號。'
         },
         {
-          label: "已完成簽署",
+          label: '已完成簽署',
           value: totalDone,
           note: `完成率 ${totalChild ? Math.round(totalDone / totalChild * 100) : 0}%`
         },
         {
-          label: "已完成案件",
+          label: '已完成案件',
           value: completedCases,
           note: `尚有 ${totalPending} 份待簽或異常需追蹤`
         }
@@ -635,14 +747,14 @@
           <div class="summary-value">${card.value}</div>
           <div class="summary-note">${card.note}</div>
         </div>
-      `).join("");
+      `).join('');
     }
 
     function renderCases(list){
       if(!list.length){
         caseTableBody.innerHTML = `
           <tr>
-            <td colspan="7">
+            <td colspan="6">
               <div class="empty">查無符合條件的案件。</div>
             </td>
           </tr>
@@ -662,11 +774,10 @@
               <div class="case-name">${item.caseName}</div>
             </td>
             <td>
-              <strong>${item.applicantName}</strong><br>
-              <span style="color:#64748b; font-size:12px;">欄位 ${item.fieldsCount} 個</span>
+              <strong>${item.applicantName}</strong>
             </td>
-            <td>${item.createdAt}</td>
-            <td><span class="pill ${getStatusClass(item.status)}">${item.status}</span></td>
+            <td>${formatDateDisplay(item.createdAt)}</td>
+            <td><span class="pill ${getStatusClass(getDisplayStatus(item))}">${getDisplayStatus(item)}</span></td>
             <td>
               <div class="progress-box">
                 <div class="progress-top">
@@ -678,17 +789,14 @@
                 </div>
               </div>
             </td>
-            <td>${item.signCount} 份</td>
             <td>
               <div class="row-actions">
-                <button class="mini-btn" onclick="toggleChildren(${index})">展開子任務</button>
-                <button class="mini-btn">查看</button>
-                <button class="mini-btn">補寄</button>
+                ${getActionButtons(item, index)}
               </div>
             </td>
           </tr>
-          <tr id="child-row-${index}" class="child-row" style="display:none;">
-            <td colspan="7">
+          <tr id="child-row-${item.caseId}" class="child-row" style="display:none;">
+            <td colspan="6">
               <div class="child-wrap">
                 <div class="child-grid">
                   ${item.childTasks.map(task => `
@@ -699,7 +807,7 @@
                       </div>
                       <div class="child-meta">
                         主案件：${item.caseId}<br>
-                        簽署時間：${task.signedAt || '尚未簽署'}
+                        簽署時間：${task.signedAt ? formatDateDisplay(task.signedAt) : '尚未簽署'}
                       </div>
                       <div class="row-actions">
                         <button class="mini-btn">複製連結</button>
@@ -707,13 +815,13 @@
                       </div>
                       <div class="child-url">${task.signUrl}</div>
                     </div>
-                  `).join("")}
+                  `).join('')}
                 </div>
               </div>
             </td>
           </tr>
         `;
-      }).join("");
+      }).join('');
     }
 
     function filterCases(){
@@ -727,7 +835,7 @@
           item.caseName.toLowerCase().includes(keyword) ||
           item.applicantName.toLowerCase().includes(keyword);
 
-        const matchStatus = !status || item.status === status;
+        const matchStatus = !status || getDisplayStatus(item) === status;
 
         return matchKeyword && matchStatus;
       });
@@ -736,17 +844,84 @@
       renderCases(filtered);
     }
 
-    function toggleChildren(index){
-      const row = document.getElementById(`child-row-${index}`);
+    function toggleChildren(index, caseId){
+      const item = demoCases[index];
+      if (!item || item.caseId !== caseId || !isCaseVerified(caseId)) {
+        openAuthModal(caseId);
+        return;
+      }
+
+      const row = document.getElementById(`child-row-${caseId}`);
       if(!row) return;
-      row.style.display = row.style.display === "none" ? "table-row" : "none";
+      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+
+    function openAuthModal(caseId){
+      activeAuthCaseId = caseId || '';
+      authOverlay.classList.add('show');
+      authMessage.className = 'auth-message';
+      authMessage.textContent = '';
+      authStaffId.value = '';
+      authBirth.value = '';
+      authPassword.value = '';
+      authStaffId.focus();
+    }
+
+    function closeAuthModal(){
+      authOverlay.classList.remove('show');
+      activeAuthCaseId = '';
+    }
+
+    function submitAuth(){
+      const staffId = authStaffId.value.trim();
+      const birth = authBirth.value.trim();
+      const password = authPassword.value.trim();
+
+      if (!staffId || !birth || !password) {
+        authMessage.textContent = '請完整輸入員編、生日與密碼。';
+        authMessage.className = 'auth-message show';
+        return;
+      }
+
+      const targetCase = demoCases.find(item => item.caseId === activeAuthCaseId);
+      const authConfig = targetCase ? getCaseAuthConfig(targetCase) : null;
+
+      if (authConfig && staffId === authConfig.staffId && birth === authConfig.birth && password === authConfig.password) {
+        verifiedCaseIds.add(activeAuthCaseId);
+        closeAuthModal();
+        filterCases();
+        return;
+      }
+
+      authMessage.textContent = '驗證失敗，請確認輸入資料是否正確。';
+      authMessage.className = 'auth-message show';
+    }
+
+    function runInlineTests(){
+      console.assert(isCaseVerified('not-exist') === false, '未驗證案件應為 false');
+      const authConfig = getCaseAuthConfig(demoCases[0]);
+      console.assert(authConfig.staffId === '104114', '員編預設值應正確');
+      console.assert(authConfig.birth === '19850923', '生日預設值應正確');
+      console.assert(authConfig.password === '84384131', '密碼預設值應正確');
+      console.assert(getDoneCount(demoCases[0]) === 2, '第一筆已完成數應為 2');
+      console.assert(getPendingCount(demoCases[0]) === 3, '第一筆待簽數應為 3');
     }
 
     window.toggleChildren = toggleChildren;
+    window.openAuthModal = openAuthModal;
+    window.closeAuthModal = closeAuthModal;
+    window.submitAuth = submitAuth;
+    window.filterCases = filterCases;
 
-    searchInput.addEventListener("input", filterCases);
-    statusFilter.addEventListener("change", filterCases);
+    searchInput.addEventListener('input', filterCases);
+    statusFilter.addEventListener('change', filterCases);
+    authOverlay.addEventListener('click', (event) => {
+      if (event.target === authOverlay) {
+        closeAuthModal();
+      }
+    });
 
+    runInlineTests();
     renderSummary(demoCases);
     renderCases(demoCases);
   </script>
