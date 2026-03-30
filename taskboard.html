@@ -295,45 +295,70 @@
       background:#fafcff;
     }
 
+    .child-row td{
+      padding-top:12px;
+      padding-bottom:16px;
+      background:#fbfdff;
+    }
+
     .child-wrap{
-      padding:14px 0 6px;
+      padding:10px 0 4px 28px;
     }
 
-    .child-grid{
+    .child-list{
       display:grid;
-      grid-template-columns:repeat(3, minmax(220px, 1fr));
-      gap:12px;
+      gap:10px;
     }
 
-    .child-card{
+    .child-item{
+      display:grid;
+      grid-template-columns:minmax(180px, 1.3fr) minmax(140px, 0.9fr) minmax(180px, 1fr) auto;
+      gap:12px;
+      align-items:center;
       border:1px solid var(--line);
       border-radius:14px;
       background:#fff;
-      padding:14px;
+      padding:12px 14px;
+      margin-left:8px;
+    }
+
+    .child-main{
+      min-width:0;
+    }
+
+    .child-name{
+      font-size:14px;
+      font-weight:700;
+      color:var(--text);
+      margin-bottom:4px;
     }
 
     .child-code{
-      font-size:13px;
-      font-weight:800;
-      margin-bottom:6px;
+      font-size:12px;
+      color:var(--sub);
+      line-height:1.6;
+      word-break:break-all;
     }
 
     .child-meta{
       font-size:12px;
       color:var(--sub);
       line-height:1.7;
-      margin-bottom:10px;
     }
 
-    .child-url{
-      font-size:12px;
-      color:var(--primary);
-      word-break:break-all;
-      background:#f8fafc;
-      border-radius:8px;
-      padding:8px;
-      margin-top:8px;
+    .child-status{
+      display:flex;
+      align-items:center;
     }
+
+    .child-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    
 
     .empty{
       text-align:center;
@@ -433,9 +458,25 @@
       .main{
         padding:16px;
       }
-      .summary-grid,
-      .child-grid{
+      .summary-grid{
         grid-template-columns:1fr;
+      }
+
+      .child-item{
+        grid-template-columns:1fr;
+        align-items:flex-start;
+      }
+
+      .child-actions{
+        justify-content:flex-start;
+      }
+
+      .child-wrap{
+        padding-left:14px;
+      }
+
+      .child-item{
+        margin-left:0;
       }
     }
   </style>
@@ -653,12 +694,21 @@
     const verifiedCaseIds = new Set();
     let activeAuthCaseId = '';
 
+    function getChildTaskDisplayStatus(task){
+      return (task.status === '已完成' || task.status === '簽署完成' || !!task.signedAt) ? '簽署完成' : '待簽署';
+    }
+
+    function getSignerDisplayName(task, index){
+      const demoNames = ['王大明', '陳小華', '林怡君', '張志豪', '黃雅婷', '李冠廷', '吳佩珊', '蔡承恩', '周品妤', '鄭子軒'];
+      return task.signerName || demoNames[index] || `簽署人 ${index + 1}`;
+    }
+
     function getDoneCount(item){
-      return item.childTasks.filter(x => x.status === '已完成').length;
+      return item.childTasks.filter(task => getChildTaskDisplayStatus(task) === '簽署完成').length;
     }
 
     function getPendingCount(item){
-      return item.childTasks.filter(x => x.status !== '已完成').length;
+      return item.childTasks.filter(task => getChildTaskDisplayStatus(task) === '待簽署').length;
     }
 
     function getProgress(item){
@@ -798,22 +848,24 @@
           <tr id="child-row-${item.caseId}" class="child-row" style="display:none;">
             <td colspan="6">
               <div class="child-wrap">
-                <div class="child-grid">
-                  ${item.childTasks.map(task => `
-                    <div class="child-card">
-                      <div class="child-code">${task.signId}</div>
-                      <div style="margin-bottom:8px;">
-                        <span class="pill ${task.status === '已完成' ? 'done' : 'pending'}">${task.status}</span>
+                <div class="child-list">
+                  ${item.childTasks.map((task, taskIndex) => `
+                    <div class="child-item">
+                      <div class="child-main">
+                        <div class="child-name">${getSignerDisplayName(task, taskIndex)}</div>
+                        <div class="child-code">${task.signId}</div>
+                      </div>
+                      <div class="child-status">
+                        <span class="pill ${getChildTaskDisplayStatus(task) === '簽署完成' ? 'done' : 'pending'}">${getChildTaskDisplayStatus(task)}</span>
                       </div>
                       <div class="child-meta">
-                        主案件：${item.caseId}<br>
                         簽署時間：${task.signedAt ? formatDateDisplay(task.signedAt) : '尚未簽署'}
                       </div>
-                      <div class="row-actions">
+                      <div class="child-actions">
+                        <button class="mini-btn">查看</button>
                         <button class="mini-btn">複製連結</button>
                         <button class="mini-btn">下載</button>
                       </div>
-                      <div class="child-url">${task.signUrl}</div>
                     </div>
                   `).join('')}
                 </div>
@@ -903,8 +955,11 @@
       console.assert(authConfig.staffId === '104114', '員編預設值應正確');
       console.assert(authConfig.birth === '19850923', '生日預設值應正確');
       console.assert(authConfig.password === '84384131', '密碼預設值應正確');
-      console.assert(getDoneCount(demoCases[0]) === 2, '第一筆已完成數應為 2');
-      console.assert(getPendingCount(demoCases[0]) === 3, '第一筆待簽數應為 3');
+      console.assert(getDoneCount(demoCases[0]) === 2, '第一筆簽署完成數應為 2');
+      console.assert(getPendingCount(demoCases[0]) === 3, '第一筆待簽署數應為 3');
+      console.assert(getChildTaskDisplayStatus(demoCases[0].childTasks[0]) === '簽署完成', '已簽任務應顯示簽署完成');
+      console.assert(getChildTaskDisplayStatus(demoCases[0].childTasks[2]) === '待簽署', '未簽任務應顯示待簽署');
+      console.assert(getSignerDisplayName(demoCases[0].childTasks[0], 0) === '王大明', '未設定 signerName 時應顯示虛擬名字');
     }
 
     window.toggleChildren = toggleChildren;
