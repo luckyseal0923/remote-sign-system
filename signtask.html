@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Sign 簽署頁預覽</title>
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --line:#e2e8f0;
+      --text:#0f172a;
+      --sub:#64748b;
+      --primary:#2563eb;
+      --primary-soft:#dbeafe;
+      --success:#16a34a;
+      --success-soft:#dcfce7;
+      --warning:#d97706;
+      --warning-soft:#fef3c7;
+      --danger:#dc2626;
+      --dark:#0f172a;
+      --shadow:0 12px 30px rgba(15,23,42,0.08);
+      --shadow-deep:0 25px 50px -12px rgba(0,0,0,0.35);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:"Noto Sans TC","Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+
+    .page{
+      max-width:1280px;
+      margin:0 auto;
+      padding:24px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      margin-bottom:20px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      font-size:30px;
+      font-weight:800;
+      margin:0 0 8px;
+      line-height:1.25;
+    }
+
+    .subtitle{
+      color:var(--sub);
+      font-size:14px;
+      line-height:1.8;
+      max-width:840px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:18px;
+    }
+
+    .panel-title{
+      margin:0 0 14px;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .info-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .info-item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      background:#fff;
+    }
+
+    .info-label{
+      font-size:12px;
+      color:var(--sub);
+      margin-bottom:6px;
+    }
+
+    .info-value{
+      font-size:15px;
+      font-weight:700;
+      line-height:1.6;
+      word-break:break-word;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .pill.pending{ background:var(--warning-soft); color:var(--warning); }
+    .pill.done{ background:var(--success-soft); color:var(--success); }
+
+    .tip-list{
+      display:grid;
+      gap:10px;
+      color:var(--sub);
+      font-size:13px;
+      line-height:1.8;
+    }
+
+    .tip{
+      padding:10px 12px;
+      border-radius:12px;
+      background:#f8fafc;
+      border:1px solid var(--line);
+    }
+
+    .workspace{
+      min-width:0;
+    }
+
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .toolbar-left,
+    .toolbar-right{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .2s;
+    }
+
+    .btn:hover{
+      border-color:var(--primary);
+      color:var(--primary);
+    }
+
+    .btn.primary{
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+    }
+
+    .btn.primary:hover{
+      color:#fff;
+      opacity:.94;
+    }
+
+    .btn.success{
+      background:var(--success);
+      border-color:var(--success);
+      color:#fff;
+    }
+
+    .btn.success:hover{
+      color:#fff;
+      opacity:.94;
+    }
+
+    .doc-stage{
+      position:relative;
+      background:#334155;
+      border-radius:20px;
+      padding:24px;
+      min-height:760px;
+      overflow:auto;
+    }
+
+    .mock-pdf{
+      position:relative;
+      width:100%;
+      max-width:820px;
+      min-height:1080px;
+      margin:0 auto;
+      background:#fff;
+      border-radius:8px;
+      box-shadow:var(--shadow-deep);
+      overflow:hidden;
+    }
+
+    .mock-header{
+      padding:36px 44px 20px;
+      border-bottom:1px solid #e5e7eb;
+    }
+
+    .mock-title{
+      font-size:28px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .mock-sub{
+      color:var(--sub);
+      font-size:14px;
+      line-height:1.8;
+    }
+
+    .mock-body{
+      padding:28px 44px 90px;
+      position:relative;
+    }
+
+    .mock-block{
+      margin-bottom:24px;
+      line-height:1.9;
+      color:#334155;
+      font-size:15px;
+    }
+
+    .mock-table{
+      width:100%;
+      border-collapse:collapse;
+      margin:20px 0 28px;
+      font-size:14px;
+    }
+
+    .mock-table th,
+    .mock-table td{
+      border:1px solid #dbe3ee;
+      padding:10px 12px;
+      text-align:left;
+    }
+
+    .mock-table th{
+      background:#f8fafc;
+      color:#475569;
+    }
+
+    .field-box{
+      position:absolute;
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:13px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      transition:all .2s;
+      backdrop-filter:blur(2px);
+    }
+
+    .field-box.prefill{
+      border:2px solid #10b981;
+      background:transparent;
+      color:#065f46;
+    }
+
+    .field-box.text{
+      border:2px dashed #0ea5e9;
+      background:rgba(14,165,233,.08);
+      color:#0369a1;
+      padding:0;
+      justify-content:flex-start;
+    }
+
+    .field-input{
+      width:100%;
+      height:100%;
+      border:0;
+      outline:none;
+      background:transparent;
+      color:#0369a1;
+      font-size:13px;
+      font-weight:700;
+      padding:0 10px;
+      font-family:inherit;
+    }
+
+    .field-input::placeholder{
+      color:#0284c7;
+      opacity:.9;
+      font-weight:600;
+    }
+
+    .field-box.sign{
+      border:2px dashed #ef4444;
+      background:rgba(239,68,68,.08);
+      color:#b91c1c;
+      cursor:pointer;
+    }
+
+    .field-box.sign:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 20px rgba(239,68,68,.14);
+    }
+
+    .signature-preview{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .signature-preview img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+    }
+
+    .signature-empty{
+      font-size:12px;
+      color:#b91c1c;
+    }
+
+    .bottom-bar{
+      position:sticky;
+      bottom:0;
+      z-index:10;
+      margin-top:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.94);
+      backdrop-filter:blur(10px);
+      box-shadow:var(--shadow);
+    }
+
+    .bottom-left{
+      font-size:13px;
+      color:var(--sub);
+      line-height:1.7;
+    }
+
+    .bottom-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(15,23,42,.55);
+      padding:20px;
+      z-index:999;
+    }
+
+    .modal-overlay.show{
+      display:flex;
+    }
+
+    .modal{
+      width:100%;
+      max-width:760px;
+      background:#fff;
+      border-radius:20px;
+      box-shadow:var(--shadow-deep);
+      border:1px solid var(--line);
+      overflow:hidden;
+    }
+
+    .modal-head{
+      padding:18px 20px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .modal-title{
+      font-size:20px;
+      font-weight:800;
+      margin:0 0 8px;
+    }
+
+    .modal-sub{
+      font-size:13px;
+      color:var(--sub);
+      line-height:1.7;
+    }
+
+    .modal-body{
+      padding:18px 20px;
+    }
+
+    .sign-canvas-wrap{
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    #signatureCanvas{
+      display:block;
+      width:100%;
+      height:320px;
+      background:
+        linear-gradient(#fff, #fff) padding-box,
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 37px,
+          #eef2f7 38px
+        );
+      touch-action:none;
+      cursor:crosshair;
+    }
+
+    .modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      padding:0 20px 20px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%) translateY(120px);
+      background:#0f172a;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:12px;
+      font-size:13px;
+      box-shadow:var(--shadow);
+      transition:transform .25s ease;
+      z-index:1001;
+      max-width:90vw;
+      text-align:center;
+    }
+
+    .toast.show{
+      transform:translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1024px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .page{
+        padding:16px;
+      }
+    }
+
+    @media (max-width: 768px){
+      .title{
+        font-size:24px;
+      }
+
+      .doc-stage{
+        padding:14px;
+      }
+
+      .mock-header{
+        padding:24px 20px 16px;
+      }
+
+      .mock-body{
+        padding:22px 20px 90px;
+      }
+
+      .bottom-bar{
+        align-items:flex-start;
+      }
+
+      .bottom-actions{
+        width:100%;
+      }
+
+      .bottom-actions .btn{
+        flex:1 1 auto;
+      }
+
+      .field-box{
+        font-size:12px;
+      }
+
+      #signatureCanvas{
+        height:260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1 class="title">E-Sign 遠端簽核系統</h1>
+        <div class="subtitle">
+          此頁為簽署頁虛擬預覽版，先用模擬 PDF 呈現操作流程。<br>
+          目前示範互動：<strong>直接點擊 PDF 上的簽名框，彈出簽名板完成簽署。</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside>
+        <section class="panel">
+          <h2 class="panel-title">簽署任務資訊</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">文件名稱</div>
+              <div class="info-value">三月公關品簽領單</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">案件編號</div>
+              <div class="info-value">Esign-20260330-001</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">簽署編號</div>
+              <div class="info-value">Esign-20260330-001-03</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">簽署人</div>
+              <div class="info-value">王大明</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">目前狀態</div>
+              <div class="info-value"><span class="pill pending" id="taskStatusBadge">待簽署</span></div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">建立時間</div>
+              <div class="info-value">2026/03/30 08:20</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">操作提示</h2>
+          <div class="tip-list">
+            <div class="tip">1. 點擊紅色虛線的 <strong>簽名框</strong> 開啟簽名板。</div>
+            <div class="tip">2. 綠色框為預填欄位，僅供檢視。</div>
+            <div class="tip">3. 藍色框為文字欄位，示範版先以靜態方式呈現。</div>
+            <div class="tip">4. 完成簽名後按「套用簽名」，即可回到文件上看到結果。</div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <span class="pill pending">簽署頁預覽 Demo</span>
+            <span class="pill done" id="signStatePill" style="display:none;">已完成簽名</span>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn" id="resetSignatureBtn">清除目前簽名</button>
+            <button class="btn">縮放 100%</button>
+          </div>
+        </div>
+
+        <div class="doc-stage">
+          <div class="mock-pdf">
+            <div class="mock-header" style="padding:18px 26px 10px; border-bottom:none; text-align:center;">
+              <div class="mock-title" style="font-size:30px; letter-spacing:20px; margin-bottom:6px;">領 據</div>
+              <div class="mock-sub" style="display:flex; justify-content:flex-end; font-size:16px; color:#111827;">日期：　年　月　日</div>
+            </div>
+
+            <div class="mock-body" style="padding:8px 12px 36px; position:relative;">
+              <div style="border:4px solid #111827; padding:26px 22px 28px; min-height:760px; position:relative; font-size:18px; line-height:1.9; color:#111827;">
+                <div style="margin-bottom:10px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                  <div>茲收到　貴院　　　　　　　　　費，（□現金　□支票　□匯款）</div>
+                </div>
+                <div style="margin-bottom:8px;">計新台幣：　　　　拾　　　萬　　　仟　　　佰　　　拾　　　元整</div>
+                <div style="margin-bottom:10px;">特立此據，以茲證明。</div>
+                <div style="margin-bottom:12px;">　　　此　　致</div>
+                <div style="font-weight:700; text-align:center; margin-bottom:12px;">臺北市立萬芳醫院－委託財團法人臺北醫學大學辦理</div>
+
+                <div style="margin:6px 0;">　　　　立 據 人：　　　　　　　　　　　　蓋章：</div>
+                <div style="margin:6px 0;">　　　　身分證字號：</div>
+                <div style="margin:6px 0 4px 86px;">（員工編號）</div>
+                <div style="margin:6px 0;">　　　　戶籍地址：　　　縣　　　鄉鎮　　　村　　　鄰</div>
+                <div style="margin:6px 0 0 170px;">市　　　市區　　　里</div>
+                <div style="margin:18px 0 0 170px;">街　　　段　　　巷　　　弄　　　號　　　樓</div>
+                <div style="margin:0 0 20px 170px;">路</div>
+
+                <div style="display:flex; align-items:flex-start; gap:14px; margin-top:38px;">
+                  <div style="min-width:90px;">　　　　說　　明：</div>
+                  <div style="border:1.5px solid #111827; width:265px; min-height:130px; padding:10px 12px; line-height:1.7;">
+                    應收金額：<br>
+                    代扣稅額：<br>
+                    代扣健保補充保費：<br>
+                    實收金額：
+                  </div>
+                </div>
+
+                <div style="position:absolute; left:0; right:0; bottom:0; height:200px; border-top:1.5px solid #111827; display:grid; grid-template-columns:1fr 1fr;">
+                  <div style="border-right:1.5px solid #111827; display:flex; align-items:center; justify-content:center; text-align:center; font-size:18px; line-height:1.9;">
+                    <div>
+                      身份證影本正面<br>
+                      <span style="font-size:15px;">（院外人士適用）</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:center; text-align:center; font-size:18px; line-height:1.9;">
+                    <div>
+                      身份證影本背面<br>
+                      <span style="font-size:15px;">（院外人士適用）</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; font-size:14px; color:#111827; margin-top:8px; padding:0 8px;">
+                <span>臺北市立萬芳醫院 106-12-G</span>
+                <span>FE200016</span>
+              </div>
+
+              <div class="field-box prefill" style="left:156px; top:38px; width:128px; height:38px;">課程講師費</div>
+              <div class="field-box text" style="left:232px; top:309px; width:210px; height:42px;">
+                <input
+                  class="field-input"
+                  id="idNumberInput"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  maxlength="10"
+                  placeholder="輸入身分證字號"
+                />
+              </div>
+              <div class="field-box sign" id="signatureField" style="left:201px; top:243px; width:170px; height:58px;">
+                <div class="signature-preview" id="signaturePreview">
+                  <span class="signature-empty">點此簽名</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-bar">
+          <div class="bottom-left">
+            <div>目前需完成：<strong>1 個簽名欄位</strong></div>
+            <div id="bottomHint">尚未簽名，請點擊 PDF 上的紅色簽名框完成操作。</div>
+          </div>
+          <div class="bottom-actions">
+            <button class="btn" id="clearSignatureBtn">清除簽名</button>
+            <button class="btn">暫存</button>
+            <button class="btn success" id="submitBtn">送出簽署</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="signatureModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 class="modal-title">簽名板</h3>
+        <div class="modal-sub">請直接在下方手寫簽名。完成後按「套用簽名」回填至 PDF 上的簽名框。</div>
+      </div>
+      <div class="modal-body">
+        <div class="sign-canvas-wrap">
+          <canvas id="signatureCanvas"></canvas>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="cancelSignBtn">取消</button>
+        <button class="btn" id="clearCanvasBtn">清除重簽</button>
+        <button class="btn primary" id="applySignatureBtn">套用簽名</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">已更新</div>
+
+  <script>
+        const signatureField = document.getElementById('signatureField');
+    const signatureModal = document.getElementById('signatureModal');
+    const signatureCanvas = document.getElementById('signatureCanvas');
+    const signaturePreview = document.getElementById('signaturePreview');
+    const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+    const cancelSignBtn = document.getElementById('cancelSignBtn');
+    const applySignatureBtn = document.getElementById('applySignatureBtn');
+    const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+    const resetSignatureBtn = document.getElementById('resetSignatureBtn');
+    const signStatePill = document.getElementById('signStatePill');
+    const taskStatusBadge = document.getElementById('taskStatusBadge');
+    const bottomHint = document.getElementById('bottomHint');
+    const submitBtn = document.getElementById('submitBtn');
+    const toast = document.getElementById('toast');
+
+    const ctx = signatureCanvas.getContext('2d');
+    let isDrawing = false;
+    let hasDrawn = false;
+    let appliedSignatureDataUrl = '';
+
+    function showToast(message){
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function resizeSignatureCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const rect = signatureCanvas.getBoundingClientRect();
+      signatureCanvas.width = rect.width * ratio;
+      signatureCanvas.height = rect.height * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#111827';
+
+      if (appliedSignatureDataUrl) {
+        const image = new Image();
+        image.onload = () => {
+          ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+          ctx.drawImage(image, 0, 0, rect.width, rect.height);
+          hasDrawn = true;
+        };
+        image.src = appliedSignatureDataUrl;
+      } else {
+        ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      }
+    }
+
+    function getPoint(event){
+      const rect = signatureCanvas.getBoundingClientRect();
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function startDraw(event){
+      event.preventDefault();
+      const point = getPoint(event);
+      isDrawing = true;
+      hasDrawn = true;
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+    }
+
+    function draw(event){
+      if (!isDrawing) return;
+      event.preventDefault();
+      const point = getPoint(event);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
+    }
+
+    function endDraw(){
+      if (!isDrawing) return;
+      isDrawing = false;
+      ctx.closePath();
+    }
+
+    function openSignatureModal(){
+      signatureModal.classList.add('show');
+      requestAnimationFrame(resizeSignatureCanvas);
+    }
+
+    function closeSignatureModal(){
+      signatureModal.classList.remove('show');
+    }
+
+    function clearCanvas(){
+      const rect = signatureCanvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      hasDrawn = false;
+      appliedSignatureDataUrl = '';
+    }
+
+    function clearAppliedSignature(){
+      appliedSignatureDataUrl = '';
+      signaturePreview.innerHTML = '<span class="signature-empty">點此簽名</span>';
+      signStatePill.style.display = 'none';
+      taskStatusBadge.textContent = '待簽署';
+      taskStatusBadge.className = 'pill pending';
+      bottomHint.textContent = '尚未簽名，請點擊 PDF 上的紅色簽名框完成操作。';
+      showToast('已清除簽名');
+    }
+
+    function applySignature(){
+      if (!hasDrawn) {
+        showToast('請先完成簽名');
+        return;
+      }
+
+      appliedSignatureDataUrl = signatureCanvas.toDataURL('image/png');
+      signaturePreview.innerHTML = `<img src="${appliedSignatureDataUrl}" alt="簽名預覽">`;
+      signStatePill.style.display = 'inline-flex';
+      taskStatusBadge.textContent = '簽署完成';
+      taskStatusBadge.className = 'pill done';
+      bottomHint.textContent = '已完成簽名，可直接送出本次簽署。';
+      closeSignatureModal();
+      showToast('簽名已套用到文件');
+    }
+
+    function submitSignature(){
+      if (!appliedSignatureDataUrl) {
+        showToast('請先完成簽名再送出');
+        return;
+      }
+      showToast('簽署送出成功（Demo）');
+    }
+
+    signatureField.addEventListener('click', openSignatureModal);
+    clearCanvasBtn.addEventListener('click', clearCanvas);
+    cancelSignBtn.addEventListener('click', closeSignatureModal);
+    applySignatureBtn.addEventListener('click', applySignature);
+    clearSignatureBtn.addEventListener('click', clearAppliedSignature);
+    resetSignatureBtn.addEventListener('click', clearAppliedSignature);
+    submitBtn.addEventListener('click', submitSignature);
+
+    signatureCanvas.addEventListener('mousedown', startDraw);
+    signatureCanvas.addEventListener('mousemove', draw);
+    signatureCanvas.addEventListener('mouseup', endDraw);
+    signatureCanvas.addEventListener('mouseleave', endDraw);
+
+    signatureCanvas.addEventListener('touchstart', startDraw, { passive:false });
+    signatureCanvas.addEventListener('touchmove', draw, { passive:false });
+    signatureCanvas.addEventListener('touchend', endDraw);
+
+    signatureModal.addEventListener('click', (event) => {
+      if (event.target === signatureModal) {
+        closeSignatureModal();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (signatureModal.classList.contains('show')) {
+        resizeSignatureCanvas();
+      }
+    });
+  </script>
+</body>
+</html>
