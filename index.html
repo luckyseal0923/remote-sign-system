@@ -13,9 +13,23 @@
       --txt-color: #0ea5e9;
       --prefill-color: #10b981;
       --bg-slate: #f8fafc;
+      --viewer-bg: #334155;
       --border: #e2e8f0;
+      --border-dark: #cbd5e1;
       --text-main: #1e293b;
       --text-sub: #64748b;
+      --text-soft: #94a3b8;
+      --danger: #ef4444;
+      --white: #ffffff;
+      --shadow-soft: 4px 0 15px rgba(0, 0, 0, 0.05);
+      --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      --shadow-floating: 0 4px 20px rgba(0, 0, 0, 0.2);
+      --shadow-toast: 0 10px 25px rgba(0, 0, 0, 0.2);
+      --radius-sm: 8px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --sidebar-width: 420px;
+      --toolbar-gap: 8px;
     }
 
     * {
@@ -26,24 +40,34 @@
     body {
       margin: 0;
       font-family: "Inter", "Noto Sans TC", sans-serif;
-      background: #e2e8f0;
+      background: var(--border);
+      color: var(--text-main);
       display: flex;
       height: 100vh;
       overflow: hidden;
-      color: var(--text-main);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     /* =========================
        側邊欄
     ========================= */
     .sidebar {
-      width: 420px;
-      background: white;
-      border-right: 1px solid #cbd5e1;
+      width: var(--sidebar-width);
+      background: var(--white);
+      border-right: 1px solid var(--border-dark);
       display: flex;
       flex-direction: column;
       z-index: 100;
-      box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-soft);
     }
 
     .sidebar-header {
@@ -53,45 +77,107 @@
     }
 
     .sidebar-header h1 {
-      font-size: 18px;
       margin: 0;
+      font-size: 24px;
       color: var(--text-main);
+      line-height: 1.3;
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
+    .system-icon {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+      color: var(--primary);
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
+    }
+
+    .system-title-text {
+      display: block;
+    }
+
+    .sidebar-header .system-subtitle {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-sub);
+    }
+
     .sidebar-content {
-      padding: 20px;
-      overflow-y: auto;
       flex: 1;
+      overflow-y: auto;
+      padding: 20px;
     }
 
     .card {
-      background: #fff;
+      background: var(--white);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       padding: 16px;
       margin-bottom: 18px;
     }
 
+    .build-card {
+      position: sticky;
+      bottom: 0;
+      border-top: 4px solid var(--primary);
+      background: linear-gradient(to top, var(--white) 70%, rgba(255,255,255,0));
+      padding-top: 10px;
+    }
+
     h2 {
-      font-size: 14px;
       margin: 0 0 15px;
+      font-size: 14px;
       color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+    }
+
+    .hint,
+    .case-summary,
+    .file-name,
+    .url-preview {
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     .hint {
-      font-size: 12px;
-      color: #94a3b8;
-      margin-top: -6px;
+      color: var(--text-soft);
+      margin-top: 8px;
       margin-bottom: 12px;
-      line-height: 1.5;
+    }
+
+    .case-summary {
+      color: var(--text-sub);
+      margin-top: 8px;
+    }
+
+    .file-name {
+      margin-top: 10px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    .url-preview {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed var(--border-dark);
+      border-radius: var(--radius-sm);
+      background: var(--bg-slate);
+      color: #475569;
+      word-break: break-all;
     }
 
     .form-grid {
@@ -99,7 +185,8 @@
       gap: 10px;
     }
 
-    .form-row-2 {
+    .form-row-2,
+    .sign-action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -114,21 +201,41 @@
     .field label {
       font-size: 12px;
       font-weight: 700;
-      color: #64748b;
+      color: var(--text-sub);
+    }
+
+    .field input,
+    .field select,
+    .field-item input,
+    .toolbar-row select {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius-sm);
+      background: var(--white);
     }
 
     .field input,
     .field select {
-      width: 100%;
       padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
       font-size: 14px;
-      background: white;
+    }
+
+    .field-item input {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .toolbar-row select {
+      width: auto;
+      min-width: 110px;
+      padding: 8px 10px;
+      font-size: 13px;
     }
 
     .field input:focus,
-    .field select:focus {
+    .field select:focus,
+    .field-item input:focus,
+    .toolbar-row select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
@@ -136,7 +243,7 @@
     .btn {
       width: 100%;
       border: 0;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 10px 16px;
       font-size: 14px;
       font-weight: 600;
@@ -150,7 +257,7 @@
 
     .btn-primary {
       background: var(--primary);
-      color: white;
+      color: var(--white);
     }
 
     .btn-primary:hover {
@@ -158,8 +265,8 @@
     }
 
     .btn-outline {
-      background: white;
-      border: 1px solid #cbd5e1;
+      background: var(--white);
+      border: 1px solid var(--border-dark);
       color: #475569;
     }
 
@@ -176,12 +283,45 @@
       font-size: 13px;
     }
 
+    .btn-toolbar.active {
+      background: #dbeafe;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .toolbar-box {
+      border: 1px dashed var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: var(--bg-slate);
+      margin-top: 12px;
+    }
+
+    .toolbar-title {
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--toolbar-gap);
+      margin-bottom: 8px;
+    }
+
+    .toolbar-row:last-child {
+      margin-bottom: 0;
+    }
+
     .field-item {
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 12px;
       margin-bottom: 10px;
-      background: #fff;
+      background: var(--white);
       transition: all 0.2s;
     }
 
@@ -193,59 +333,10 @@
 
     .field-item label {
       display: block;
+      margin-bottom: 6px;
       font-size: 11px;
       font-weight: bold;
-      margin-bottom: 6px;
-      color: #94a3b8;
-    }
-
-    .field-item input {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 13px;
-    }
-
-    .toolbar-box {
-      border: 1px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 12px;
-      background: #f8fafc;
-      margin-top: 12px;
-    }
-
-    .toolbar-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #64748b;
-      margin-bottom: 10px;
-    }
-
-    .toolbar-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-
-    .toolbar-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .toolbar-row select {
-      padding: 8px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
-      background: white;
-    }
-
-    .toolbar-row .btn-toolbar.active {
-      background: #dbeafe;
-      border-color: var(--primary);
-      color: var(--primary);
+      color: var(--text-soft);
     }
 
     /* =========================
@@ -253,46 +344,46 @@
     ========================= */
     .viewer {
       flex: 1;
-      background: #334155;
-      padding: 28px 28px 40px;
+      position: relative;
       overflow: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
-      position: relative;
+      padding: 28px 28px 40px;
+      background: var(--viewer-bg);
     }
 
     .page-nav {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      padding: 10px 18px;
-      border-radius: 50px;
-      margin-bottom: 24px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
       position: sticky;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: none;
       flex-wrap: wrap;
       justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-floating);
     }
 
     .nav-btn {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 999px;
       min-width: 36px;
       height: 36px;
-      cursor: pointer;
       padding: 0 12px;
+      border: 1px solid var(--border-dark);
+      border-radius: 999px;
+      background: var(--white);
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
       font-size: 13px;
       font-weight: 600;
+      transition: all 0.2s;
     }
 
     .nav-btn:hover:not(:disabled) {
@@ -309,23 +400,28 @@
     .nav-divider {
       width: 1px;
       height: 24px;
-      background: #e2e8f0;
       margin: 0 4px;
+      background: var(--border);
     }
 
+    .page-info,
     .zoom-label {
       min-width: 58px;
       text-align: center;
-      font-weight: 700;
       font-size: 13px;
+      font-weight: 700;
       color: #334155;
+    }
+
+    .page-info {
+      min-width: 64px;
     }
 
     .stage-wrap {
       position: relative;
-      background: white;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
       flex: 0 0 auto;
+      background: var(--white);
+      box-shadow: var(--shadow-card);
     }
 
     #pdfCanvas {
@@ -343,8 +439,8 @@
     ========================= */
     .box {
       position: absolute;
-      pointer-events: auto;
-      cursor: grab;
+      min-width: 24px;
+      min-height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -352,8 +448,8 @@
       backdrop-filter: blur(2px);
       user-select: none;
       touch-action: none;
-      min-width: 40px;
-      min-height: 24px;
+      pointer-events: auto;
+      cursor: grab;
     }
 
     .box:active {
@@ -361,9 +457,9 @@
     }
 
     .box.active {
+      z-index: 50;
       outline: 2px solid var(--primary);
       box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
-      z-index: 50;
     }
 
     .type-sig {
@@ -382,31 +478,35 @@
       color: #065f46;
     }
 
-    .box-num {
+    .box-num,
+    .del-icon {
       position: absolute;
-      top: -12px;
-      left: -12px;
-      background: #1e293b;
-      color: white;
-      font-size: 10px;
       width: 22px;
       height: 22px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid white;
+      border: 2px solid var(--white);
+    }
+
+    .box-num {
+      top: -12px;
+      left: -12px;
+      background: var(--text-main);
+      color: var(--white);
+      font-size: 10px;
       font-weight: bold;
     }
 
     .box-content {
       width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
       padding: 4px 6px;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      height: 100%;
     }
 
     .box-content span {
@@ -418,20 +518,12 @@
     }
 
     .del-icon {
-      position: absolute;
       top: -12px;
       right: -12px;
-      background: #ef4444;
-      color: white;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: 2px solid white;
+      background: var(--danger);
+      color: var(--white);
       font-size: 14px;
+      cursor: pointer;
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -446,9 +538,9 @@
       bottom: 0;
       width: 14px;
       height: 14px;
+      border-radius: 2px 0 0 0;
       background: var(--primary);
       cursor: nwse-resize;
-      border-radius: 2px 0 0 0;
     }
 
     /* =========================
@@ -456,49 +548,23 @@
     ========================= */
     #toast {
       position: fixed;
-      bottom: 30px;
       left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #1e293b;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      bottom: 30px;
       z-index: 9999;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       max-width: 90vw;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      background: var(--text-main);
+      color: var(--white);
+      font-size: 14px;
       text-align: center;
+      box-shadow: var(--shadow-toast);
+      transform: translateX(-50%) translateY(100px);
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     }
 
     #toast.show {
       transform: translateX(-50%) translateY(0);
-    }
-
-    .case-summary {
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 8px;
-      line-height: 1.6;
-    }
-
-    .build-btn-wrap {
-      position: sticky;
-      bottom: 0;
-      background: linear-gradient(to top, white 70%, rgba(255,255,255,0));
-      padding-top: 10px;
-    }
-
-    .url-preview {
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px dashed #cbd5e1;
-      border-radius: 8px;
-      background: #f8fafc;
-      font-size: 12px;
-      color: #475569;
-      word-break: break-all;
-      line-height: 1.6;
     }
   </style>
 </head>
@@ -506,11 +572,20 @@
 
 <aside class="sidebar">
   <div class="sidebar-header">
-    <h1>📄 遠端簽名佈局系統</h1>
+    <h1>
+      <span class="system-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 4.75H15L19.25 9V18.5C19.25 19.4665 18.4665 20.25 17.5 20.25H8C7.0335 20.25 6.25 19.4665 6.25 18.5V6.5C6.25 5.5335 7.0335 4.75 8 4.75Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M15 4.75V9H19.25" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M9 15.25L11 17.25L15.5 12.75" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="system-title-text">遠端簽名佈署系統｜E-Sign System</span>
+    </h1>
+    <div class="system-subtitle">協助使用者完成簽署文件上傳、簽署欄位配置、簽署人建立與專屬簽署網址分派，提升遠端簽署作業效率與管理便利性。</div>
   </div>
 
   <div class="sidebar-content">
-
     <div class="card">
       <h2>1. 起單資訊</h2>
       <div class="form-grid">
@@ -552,22 +627,21 @@
       <h2>2. 簽署份數</h2>
       <div class="form-grid">
         <div class="field">
-          <label for="signCount">簽署份數</label>
+          <label for="signCount">簽署份數（最多 10 份）</label>
           <input id="signCount" type="number" min="1" max="10" value="1" placeholder="請輸入 1~10">
         </div>
       </div>
-      <div class="hint">建立案件後，系統會依份數自動產生多組獨立簽署 URL 與子編號。</div>
+
+      <div id="signerFields" class="form-grid" style="margin-top: 12px;"></div>
+
+      <div class="hint">請填寫每一位簽署人的姓名。建立案件後，系統會依簽署人分派專屬簽署網址與子編號。</div>
     </div>
 
     <div class="card">
       <h2>3. 文件管理</h2>
-      <input type="file" id="pdfFile" accept="application/pdf" style="display:none">
-      <button class="btn btn-primary" id="pickPdfBtn">
-        📁 選擇 PDF 文件
-      </button>
-      <div id="fileName" style="margin-top: 10px; font-size: 12px; color: #64748b; text-align: center;">
-        尚未選擇檔案
-      </div>
+      <input type="file" id="pdfFile" accept="application/pdf" class="hidden">
+      <button class="btn btn-primary" id="pickPdfBtn">📁 選擇 PDF 文件</button>
+      <div id="fileName" class="file-name">尚未選擇檔案</div>
     </div>
 
     <div class="card">
@@ -576,6 +650,7 @@
 
       <div class="toolbar-box">
         <div class="toolbar-title">預填框文字樣式</div>
+
         <div class="toolbar-row">
           <select id="prefillFontSize">
             <option value="12">12 px</option>
@@ -585,46 +660,45 @@
             <option value="20">20 px</option>
           </select>
 
-          <button class="btn btn-outline btn-toolbar" id="toggleBoldBtn" type="button">B</button>
-        </div>
+          <select id="prefillTextColor">
+            <option value="#111827" selected>黑色</option>
+            <option value="#065f46">綠色</option>
+            <option value="#dc2626">紅色</option>
+            <option value="#2563eb">藍色</option>
+            <option value="#7c3aed">紫色</option>
+          </select>
 
-        <div class="toolbar-row">
-          <button class="btn btn-outline btn-toolbar align-btn" data-align="left" type="button">左</button>
-          <button class="btn btn-outline btn-toolbar align-btn" data-align="center" type="button">中</button>
-          <button class="btn btn-outline btn-toolbar align-btn" data-align="right" type="button">右</button>
+          <button class="btn btn-outline btn-toolbar" id="toggleBoldBtn" type="button">B</button>
         </div>
 
         <div class="hint">先點選一個預填框，再調整文字樣式。</div>
       </div>
 
-      <div id="prefillList" style="margin-top: 12px;"></div>
+      <div id="prefillList"></div>
     </div>
 
     <div class="card">
       <h2>5. 簽署欄位 <small>(手機簽署用)</small></h2>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div class="sign-action-grid">
         <button class="btn btn-outline" id="addSig">✒️ 簽名框</button>
         <button class="btn btn-outline" id="addTxt">🔤 文字框</button>
       </div>
       <div id="signList" style="margin-top: 10px;"></div>
     </div>
 
-    <div class="card build-btn-wrap" style="border-top: 4px solid var(--primary);">
+    <div class="card build-card">
       <h2>6. 建立案件</h2>
       <button class="btn btn-primary" id="createCaseBtn">✅ 建立案件</button>
-      <div class="case-summary">
-        建立後將自動產生主案件編號、子編號與簽署 URL，並跳轉至任務看板。
-      </div>
-      <div id="urlPreview" class="url-preview" style="display:none;"></div>
+      <div class="case-summary">建立後將自動產生主案件編號、子編號與簽署 URL，並跳轉至任務看板。</div>
+      <div id="urlPreview" class="url-preview"></div>
     </div>
-
   </div>
 </aside>
 
 <main class="viewer">
-  <div class="page-nav" id="navUi" style="display:none;">
+  <div class="page-nav" id="navUi">
     <button id="prev" class="nav-btn">＜</button>
-    <span id="pageInfo" style="font-weight: bold; min-width: 64px; text-align: center;">1 / 1</span>
+    <span id="pageInfo" class="page-info">1 / 1</span>
     <button id="next" class="nav-btn">＞</button>
 
     <div class="nav-divider"></div>
@@ -644,336 +718,404 @@
 <div id="toast">訊息已更新</div>
 
 <script type="module">
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
 
-/* =========================
-   全域狀態
-========================= */
-let pdfDoc = null;
-let currPage = 1;
-let fields = [];
-let selectedId = null;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
 
-let currentScale = 1.2;
-const SCALE_STEP = 0.1;
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 2.5;
-
-/* =========================
-   DOM
-========================= */
-const canvas = document.getElementById('pdfCanvas');
-const overlay = document.getElementById('overlay');
-const stageWrap = document.getElementById('stageWrap');
-const prefillList = document.getElementById('prefillList');
-const signList = document.getElementById('signList');
-
-const pickPdfBtn = document.getElementById('pickPdfBtn');
-const pdfFileInput = document.getElementById('pdfFile');
-const fileNameEl = document.getElementById('fileName');
-const navUi = document.getElementById('navUi');
-const pageInfoEl = document.getElementById('pageInfo');
-const zoomLabelEl = document.getElementById('zoomLabel');
-const urlPreview = document.getElementById('urlPreview');
-
-const prefillFontSize = document.getElementById('prefillFontSize');
-const toggleBoldBtn = document.getElementById('toggleBoldBtn');
-const alignBtns = document.querySelectorAll('.align-btn');
-
-/* =========================
-   工具函式
-========================= */
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2600);
-}
-
-function formatDateYYYYMMDD(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}${m}${d}`;
-}
-
-function generateCaseId() {
-  const today = formatDateYYYYMMDD();
-  const key = `esign-seq-${today}`;
-  const lastSeq = Number(localStorage.getItem(key) || '0') + 1;
-  localStorage.setItem(key, String(lastSeq));
-  return `Esign-${today}-${String(lastSeq).padStart(3, '0')}`;
-}
-
-function generateChildId(caseId, index) {
-  return `${caseId}-${String(index).padStart(2, '0')}`;
-}
-
-function isValidEmail(email) {
-  return /^\S+@\S+\.\S+$/.test(email);
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function getOverlayWidth() {
-  return overlay.clientWidth || 1;
-}
-
-function getOverlayHeight() {
-  return overlay.clientHeight || 1;
-}
-
-function getFieldPx(field) {
-  const overlayW = getOverlayWidth();
-  const overlayH = getOverlayHeight();
-
-  return {
-    x: field.xRatio * overlayW,
-    y: field.yRatio * overlayH,
-    w: field.wRatio * overlayW,
-    h: field.hRatio * overlayH
-  };
-}
-
-function setFieldFromPx(field, x, y, w, h) {
-  const overlayW = getOverlayWidth();
-  const overlayH = getOverlayHeight();
-
-  field.xRatio = clamp(x / overlayW, 0, 1);
-  field.yRatio = clamp(y / overlayH, 0, 1);
-  field.wRatio = clamp(w / overlayW, 0.02, 1);
-  field.hRatio = clamp(h / overlayH, 0.02, 1);
-}
-
-function getDefaultStyle(type) {
-  if (type === 'prefill') {
-    return {
-      fontSize: 14,
-      fontWeight: '400',
-      textAlign: 'left'
-    };
-  }
-
-  return {
-    fontSize: 13,
-    fontWeight: '500',
-    textAlign: 'center'
-  };
-}
-
-function updateZoomLabel() {
-  zoomLabelEl.textContent = `${Math.round(currentScale * 100)}%`;
-}
-
-function updatePrefillStyleToolbar() {
-  const field = fields.find(f => f.id === selectedId && f.type === 'prefill');
-
-  if (!field) {
-    toggleBoldBtn.classList.remove('active');
-    alignBtns.forEach(btn => btn.classList.remove('active'));
-    return;
-  }
-
-  prefillFontSize.value = String(field.style.fontSize || 14);
-  toggleBoldBtn.classList.toggle('active', field.style.fontWeight === '700');
-
-  alignBtns.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.align === field.style.textAlign);
-  });
-}
-
-function getFieldTypeLabel(type) {
-  if (type === 'prefill') return '預填文字';
-  if (type === 'sig') return '簽名框';
-  return '文字框';
-}
-
-function createManagedInput(value, placeholder, onFocus, onInput) {
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.value = value;
-  input.placeholder = placeholder;
-  input.addEventListener('focus', onFocus);
-  input.addEventListener('input', onInput);
-  return input;
-}
-
-function highlightSelectedUI(fieldId) {
-  document.querySelectorAll('.box').forEach(el => {
-    el.classList.toggle('active', el.dataset.id === fieldId);
-  });
-
-  document.querySelectorAll('.field-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.id === fieldId);
-  });
-}
-
-/* =========================
-   PDF 載入與渲染
-========================= */
-pickPdfBtn.onclick = () => pdfFileInput.click();
-
-pdfFileInput.onchange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  fileNameEl.textContent = file.name;
-  const buffer = await file.arrayBuffer();
-  pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
-
-  navUi.style.display = 'flex';
-  currPage = 1;
-  await renderPage(currPage);
-  showToast("PDF 載入成功");
-};
-
-async function renderPage(pageNum) {
-  if (!pdfDoc) return;
-
-  currPage = pageNum;
-  const page = await pdfDoc.getPage(pageNum);
-  const viewport = page.getViewport({ scale: currentScale });
-  const ctx = canvas.getContext('2d');
-
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-
-  await page.render({
-    canvasContext: ctx,
-    viewport
-  }).promise;
-
-  stageWrap.style.width = viewport.width + 'px';
-  stageWrap.style.height = viewport.height + 'px';
-  overlay.style.width = viewport.width + 'px';
-  overlay.style.height = viewport.height + 'px';
-
-  pageInfoEl.textContent = `${pageNum} / ${pdfDoc.numPages}`;
-  document.getElementById('prev').disabled = (pageNum <= 1);
-  document.getElementById('next').disabled = (pageNum >= pdfDoc.numPages);
-
-  updateZoomLabel();
-  renderUI();
-}
-
-async function fitWidth() {
-  if (!pdfDoc) return;
-
-  const viewer = document.querySelector('.viewer');
-  const page = await pdfDoc.getPage(currPage);
-  const baseViewport = page.getViewport({ scale: 1 });
-
-  const availableWidth = Math.max(300, viewer.clientWidth - 80);
-  currentScale = clamp(availableWidth / baseViewport.width, MIN_SCALE, MAX_SCALE);
-
-  await renderPage(currPage);
-}
-
-/* =========================
-   欄位操作
-========================= */
-function addField(type) {
-  if (!pdfDoc) {
-    showToast("請先上傳 PDF 文件");
-    return;
-  }
-
-  const id = crypto.randomUUID();
-
-  const defaultField = {
-    id,
-    type,
-    page: currPage,
-    xRatio: 0.08,
-    yRatio: 0.08,
-    wRatio: 0.22,
-    hRatio: 0.07,
-    content:
-      type === "sig" ? "簽署人簽名" :
-      type === "txt" ? "簽署人應填文字" :
-      "您的預填文字",
-    style: getDefaultStyle(type)
+  /* =========================
+     全域狀態
+  ========================= */
+  const state = {
+    pdfDoc: null,
+    currPage: 1,
+    currentScale: 1.2,
+    fields: [],
+    selectedId: null
   };
 
-  fields.push(defaultField);
-  selectedId = id;
-  renderUI();
-}
+  const SCALE_STEP = 0.1;
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 2.5;
 
-function renderUI() {
-  overlay.innerHTML = '';
-  prefillList.innerHTML = '';
-  signList.innerHTML = '';
+  /* =========================
+     DOM
+  ========================= */
+  const dom = {
+    canvas: document.getElementById('pdfCanvas'),
+    overlay: document.getElementById('overlay'),
+    stageWrap: document.getElementById('stageWrap'),
+    prefillList: document.getElementById('prefillList'),
+    signList: document.getElementById('signList'),
+    signerFields: document.getElementById('signerFields'),
+    pickPdfBtn: document.getElementById('pickPdfBtn'),
+    pdfFileInput: document.getElementById('pdfFile'),
+    fileNameEl: document.getElementById('fileName'),
+    navUi: document.getElementById('navUi'),
+    pageInfoEl: document.getElementById('pageInfo'),
+    zoomLabelEl: document.getElementById('zoomLabel'),
+    urlPreview: document.getElementById('urlPreview'),
+    prefillFontSize: document.getElementById('prefillFontSize'),
+    prefillTextColor: document.getElementById('prefillTextColor'),
+    toggleBoldBtn: document.getElementById('toggleBoldBtn'),
+    addPrefillBtn: document.getElementById('addPrefill'),
+    addSigBtn: document.getElementById('addSig'),
+    addTxtBtn: document.getElementById('addTxt'),
+    signCountInput: document.getElementById('signCount'),
+    createCaseBtn: document.getElementById('createCaseBtn'),
+    prevBtn: document.getElementById('prev'),
+    nextBtn: document.getElementById('next'),
+    zoomInBtn: document.getElementById('zoomIn'),
+    zoomOutBtn: document.getElementById('zoomOut'),
+    fitWidthBtn: document.getElementById('fitWidthBtn'),
+    toast: document.getElementById('toast')
+  };
 
-  fields.forEach((field, index) => {
-    const num = index + 1;
-    const isActive = field.id === selectedId;
+  /* =========================
+     工具函式
+  ========================= */
+  function showToast(message) {
+    dom.toast.textContent = message;
+    dom.toast.classList.add('show');
+    setTimeout(() => dom.toast.classList.remove('show'), 2600);
+  }
 
-    /* =========================
-       畫布上的框
-    ========================= */
-    if (field.page === currPage) {
-      const px = getFieldPx(field);
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 
-      const box = document.createElement('div');
-      box.className = `box type-${field.type === 'prefill' ? 'prefill' : field.type} ${isActive ? 'active' : ''}`;
-      box.dataset.id = field.id;
-      box.style.left = px.x + 'px';
-      box.style.top = px.y + 'px';
-      box.style.width = px.w + 'px';
-      box.style.height = px.h + 'px';
+  function isValidEmail(email) {
+    return /^\S+@\S+\.\S+$/.test(email);
+  }
 
-      box.innerHTML = `
-        <span class="box-num">${num}</span>
-        <div class="box-content"><span></span></div>
-        <div class="del-icon">✕</div>
-        <div class="resize-handle"></div>
-      `;
+  function formatDateYYYYMMDD(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
+  }
 
-      const boxText = box.querySelector('.box-content span');
-      boxText.textContent = field.content;
+  function generateCaseId() {
+    const today = formatDateYYYYMMDD();
+    const key = `esign-seq-${today}`;
+    const lastSeq = Number(localStorage.getItem(key) || '0') + 1;
+    localStorage.setItem(key, String(lastSeq));
+    return `Esign-${today}-${String(lastSeq).padStart(3, '0')}`;
+  }
 
-      const boxContent = box.querySelector('.box-content');
-      boxContent.style.fontSize = `${field.style.fontSize || 14}px`;
-      boxContent.style.fontWeight = field.style.fontWeight || '400';
-      boxContent.style.justifyContent =
-        field.style.textAlign === 'left' ? 'flex-start' :
-        field.style.textAlign === 'right' ? 'flex-end' :
-        'center';
+  function generateChildId(caseId, index) {
+    return `${caseId}-${String(index).padStart(2, '0')}`;
+  }
 
-      overlay.appendChild(box);
+  function getFieldTypeLabel(type) {
+    if (type === 'prefill') return '預填文字';
+    if (type === 'sig') return '簽名框';
+    return '文字框';
+  }
 
-      bindBoxEvents(box, field);
-
-      box.querySelector('.del-icon').onclick = (e) => {
-        e.stopPropagation();
-        removeField(field.id);
+  function getDefaultFieldStyle(type) {
+    if (type === 'prefill') {
+      return {
+        fontSize: 14,
+        fontWeight: '400',
+        color: '#111827'
       };
     }
 
-    /* =========================
-       左側清單
-    ========================= */
+    return {
+      fontSize: 13,
+      fontWeight: '500',
+      color: ''
+    };
+  }
+
+  function getDefaultFieldContent(type) {
+    if (type === 'sig') return '簽署人簽名';
+    if (type === 'txt') return '簽署人應填文字';
+    return '您的預填文字';
+  }
+
+  function getMinFieldSize(field) {
+    if (field.type === 'prefill') {
+      const fontSize = Number(field.style?.fontSize || 14);
+      return {
+        width: Math.max(28, fontSize + 16),
+        height: Math.max(20, fontSize + 8)
+      };
+    }
+
+    if (field.type === 'txt') {
+      return {
+        width: 48,
+        height: 28
+      };
+    }
+
+    return {
+      width: 60,
+      height: 30
+    };
+  }
+
+  function getOverlayWidth() {
+    return dom.overlay.clientWidth || 1;
+  }
+
+  function getOverlayHeight() {
+    return dom.overlay.clientHeight || 1;
+  }
+
+  function getFieldPx(field) {
+    const overlayW = getOverlayWidth();
+    const overlayH = getOverlayHeight();
+
+    return {
+      x: field.xRatio * overlayW,
+      y: field.yRatio * overlayH,
+      w: field.wRatio * overlayW,
+      h: field.hRatio * overlayH
+    };
+  }
+
+  function setFieldFromPx(field, x, y, w, h) {
+    const overlayW = getOverlayWidth();
+    const overlayH = getOverlayHeight();
+
+    field.xRatio = clamp(x / overlayW, 0, 1);
+    field.yRatio = clamp(y / overlayH, 0, 1);
+    field.wRatio = clamp(w / overlayW, 0.02, 1);
+    field.hRatio = clamp(h / overlayH, 0.02, 1);
+  }
+
+  function getSelectedField() {
+    return state.fields.find(field => field.id === state.selectedId) || null;
+  }
+
+  function getSignerNames() {
+    return Array.from(document.querySelectorAll('.signer-name-input')).map(input => input.value.trim());
+  }
+
+  function renderSignerInputs() {
+    const signCount = clamp(Number(dom.signCountInput.value) || 1, 1, 10);
+    const previousValues = getSignerNames();
+
+    dom.signCountInput.value = signCount;
+    dom.signerFields.innerHTML = '';
+
+    for (let i = 0; i < signCount; i++) {
+      const fieldWrap = document.createElement('div');
+      fieldWrap.className = 'field';
+
+      const label = document.createElement('label');
+      label.setAttribute('for', `signerName-${i + 1}`);
+      label.textContent = `簽署人 ${i + 1} 姓名`;
+
+      const input = document.createElement('input');
+      input.id = `signerName-${i + 1}`;
+      input.type = 'text';
+      input.className = 'signer-name-input';
+      input.placeholder = `請輸入第 ${i + 1} 位簽署人姓名`;
+      input.value = previousValues[i] || '';
+
+      fieldWrap.appendChild(label);
+      fieldWrap.appendChild(input);
+      dom.signerFields.appendChild(fieldWrap);
+    }
+  }
+
+  function getSelectedPrefillField() {
+    const field = getSelectedField();
+    return field && field.type === 'prefill' ? field : null;
+  }
+
+  function updateZoomLabel() {
+    dom.zoomLabelEl.textContent = `${Math.round(state.currentScale * 100)}%`;
+  }
+
+  function updatePrefillStyleToolbar() {
+    const field = getSelectedPrefillField();
+
+    if (!field) {
+      dom.toggleBoldBtn.classList.remove('active');
+      return;
+    }
+
+    dom.prefillFontSize.value = String(field.style.fontSize || 14);
+    dom.prefillTextColor.value = field.style.color || '#111827';
+    dom.toggleBoldBtn.classList.toggle('active', field.style.fontWeight === '700');
+  }
+
+  function createManagedInput(value, placeholder, onFocus, onInput) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.placeholder = placeholder;
+    input.addEventListener('focus', onFocus);
+    input.addEventListener('input', onInput);
+    return input;
+  }
+
+  function highlightSelectedUI(fieldId) {
+    document.querySelectorAll('.box').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === fieldId);
+    });
+
+    document.querySelectorAll('.field-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === fieldId);
+    });
+  }
+
+  /* =========================
+     PDF 載入與渲染
+  ========================= */
+  async function loadPdf(file) {
+    if (!file) return;
+
+    dom.fileNameEl.textContent = file.name;
+    const buffer = await file.arrayBuffer();
+    state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+    state.currPage = 1;
+
+    dom.navUi.style.display = 'flex';
+    await renderPage(state.currPage);
+    showToast('PDF 載入成功');
+  }
+
+  async function renderPage(pageNum) {
+    if (!state.pdfDoc) return;
+
+    state.currPage = pageNum;
+
+    const page = await state.pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: state.currentScale });
+    const context = dom.canvas.getContext('2d');
+
+    dom.canvas.width = viewport.width;
+    dom.canvas.height = viewport.height;
+
+    await page.render({
+      canvasContext: context,
+      viewport
+    }).promise;
+
+    dom.stageWrap.style.width = `${viewport.width}px`;
+    dom.stageWrap.style.height = `${viewport.height}px`;
+    dom.overlay.style.width = `${viewport.width}px`;
+    dom.overlay.style.height = `${viewport.height}px`;
+
+    dom.pageInfoEl.textContent = `${pageNum} / ${state.pdfDoc.numPages}`;
+    dom.prevBtn.disabled = pageNum <= 1;
+    dom.nextBtn.disabled = pageNum >= state.pdfDoc.numPages;
+
+    updateZoomLabel();
+    renderUI();
+  }
+
+  async function fitWidth() {
+    if (!state.pdfDoc) return;
+
+    const page = await state.pdfDoc.getPage(state.currPage);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const availableWidth = Math.max(300, document.querySelector('.viewer').clientWidth - 80);
+
+    state.currentScale = clamp(availableWidth / baseViewport.width, MIN_SCALE, MAX_SCALE);
+    await renderPage(state.currPage);
+  }
+
+  /* =========================
+     欄位操作
+  ========================= */
+  function addField(type) {
+    if (!state.pdfDoc) {
+      showToast('請先上傳 PDF 文件');
+      return;
+    }
+
+    const field = {
+      id: crypto.randomUUID(),
+      type,
+      page: state.currPage,
+      xRatio: 0.08,
+      yRatio: 0.08,
+      wRatio: 0.22,
+      hRatio: 0.07,
+      content: getDefaultFieldContent(type),
+      style: getDefaultFieldStyle(type)
+    };
+
+    state.fields.push(field);
+    state.selectedId = field.id;
+    renderUI();
+  }
+
+  function removeField(id) {
+    state.fields = state.fields.filter(field => field.id !== id);
+
+    if (state.selectedId === id) {
+      state.selectedId = null;
+    }
+
+    renderUI();
+  }
+
+  function renderFieldBox(field, index) {
+    if (field.page !== state.currPage) return null;
+
+    const px = getFieldPx(field);
+    const isActive = field.id === state.selectedId;
+    const box = document.createElement('div');
+    const typeClass = field.type === 'prefill' ? 'prefill' : field.type;
+
+    box.className = `box type-${typeClass} ${isActive ? 'active' : ''}`;
+    box.dataset.id = field.id;
+    box.style.left = `${px.x}px`;
+    box.style.top = `${px.y}px`;
+    box.style.width = `${px.w}px`;
+    box.style.height = `${px.h}px`;
+
+    box.innerHTML = `
+      <span class="box-num">${index + 1}</span>
+      <div class="box-content"><span></span></div>
+      <div class="del-icon">✕</div>
+      <div class="resize-handle"></div>
+    `;
+
+    const textSpan = box.querySelector('.box-content span');
+    const boxContent = box.querySelector('.box-content');
+
+    textSpan.textContent = field.content;
+    boxContent.style.fontSize = `${field.style.fontSize || 14}px`;
+    boxContent.style.fontWeight = field.style.fontWeight || '400';
+    boxContent.style.color = field.style.color || '';
+    boxContent.style.justifyContent = 'flex-start';
+
+    box.querySelector('.del-icon').addEventListener('click', (event) => {
+      event.stopPropagation();
+      removeField(field.id);
+    });
+
+    bindBoxEvents(box, field);
+    return box;
+  }
+
+  function renderFieldListItem(field, index) {
+    const isActive = field.id === state.selectedId;
     const item = document.createElement('div');
     item.className = `field-item ${isActive ? 'active' : ''}`;
     item.dataset.id = field.id;
 
     const label = document.createElement('label');
-    label.textContent = `[${num}] ${getFieldTypeLabel(field.type)} - 第 ${field.page} 頁`;
+    label.textContent = `[${index + 1}] ${getFieldTypeLabel(field.type)} - 第 ${field.page} 頁`;
 
     const input = createManagedInput(
       field.content,
       '輸入提示文字...',
       () => {
-        selectedId = field.id;
+        state.selectedId = field.id;
         highlightSelectedUI(field.id);
         updatePrefillStyleToolbar();
       },
-      (e) => {
-        field.content = e.target.value;
+      (event) => {
+        field.content = event.target.value;
         const onCanvas = document.querySelector(`[data-id="${field.id}"] .box-content span`);
         if (onCanvas) onCanvas.textContent = field.content;
       }
@@ -982,332 +1124,357 @@ function renderUI() {
     item.appendChild(label);
     item.appendChild(input);
 
-    item.addEventListener('click', (e) => {
-      if (e.target.tagName !== 'INPUT') {
-        selectedId = field.id;
+    item.addEventListener('click', (event) => {
+      if (event.target.tagName !== 'INPUT') {
+        state.selectedId = field.id;
         renderUI();
       }
     });
 
-    if (field.type === 'prefill') {
-      prefillList.appendChild(item);
-    } else {
-      signList.appendChild(item);
-    }
-  });
-
-  updatePrefillStyleToolbar();
-}
-
-function bindBoxEvents(box, field) {
-  /* =========================
-     滑鼠拖曳
-  ========================= */
-  box.onmousedown = (e) => {
-    if (e.target.classList.contains('resize-handle')) return;
-    if (e.target.classList.contains('del-icon')) return;
-
-    e.preventDefault();
-
-    if (selectedId !== field.id) {
-      selectedId = field.id;
-      highlightSelectedUI(field.id);
-      updatePrefillStyleToolbar();
-    }
-
-    const boxRect = box.getBoundingClientRect();
-    const containerRect = stageWrap.getBoundingClientRect();
-    const startOffsetX = e.clientX - boxRect.left;
-    const startOffsetY = e.clientY - boxRect.top;
-
-    const onMove = (me) => {
-      const px = getFieldPx(field);
-
-      let newX = me.clientX - containerRect.left - startOffsetX;
-      let newY = me.clientY - containerRect.top - startOffsetY;
-
-      newX = clamp(newX, 0, stageWrap.clientWidth - px.w);
-      newY = clamp(newY, 0, stageWrap.clientHeight - px.h);
-
-      setFieldFromPx(field, newX, newY, px.w, px.h);
-
-      box.style.left = newX + 'px';
-      box.style.top = newY + 'px';
-    };
-
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      renderUI();
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  };
-
-  /* =========================
-     縮放
-  ========================= */
-  const resizeHandle = box.querySelector('.resize-handle');
-  resizeHandle.onmousedown = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    if (selectedId !== field.id) {
-      selectedId = field.id;
-      highlightSelectedUI(field.id);
-      updatePrefillStyleToolbar();
-    }
-
-    const startPx = getFieldPx(field);
-    const startX = e.clientX;
-    const startY = e.clientY;
-
-    const onMove = (me) => {
-      const currentPx = getFieldPx(field);
-
-      let newW = Math.max(60, startPx.w + (me.clientX - startX));
-      let newH = Math.max(30, startPx.h + (me.clientY - startY));
-
-      newW = Math.min(newW, stageWrap.clientWidth - currentPx.x);
-      newH = Math.min(newH, stageWrap.clientHeight - currentPx.y);
-
-      setFieldFromPx(field, currentPx.x, currentPx.y, newW, newH);
-
-      box.style.width = newW + 'px';
-      box.style.height = newH + 'px';
-    };
-
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      renderUI();
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  };
-
-  /* =========================
-     觸控拖曳
-  ========================= */
-  box.ontouchstart = (e) => {
-    if (e.target.classList.contains('resize-handle')) return;
-    if (e.target.classList.contains('del-icon')) return;
-
-    const touch = e.touches[0];
-
-    if (selectedId !== field.id) {
-      selectedId = field.id;
-      highlightSelectedUI(field.id);
-      updatePrefillStyleToolbar();
-    }
-
-    const boxRect = box.getBoundingClientRect();
-    const containerRect = stageWrap.getBoundingClientRect();
-    const startOffsetX = touch.clientX - boxRect.left;
-    const startOffsetY = touch.clientY - boxRect.top;
-
-    const onTouchMove = (te) => {
-      const t = te.touches[0];
-      const px = getFieldPx(field);
-
-      let newX = t.clientX - containerRect.left - startOffsetX;
-      let newY = t.clientY - containerRect.top - startOffsetY;
-
-      newX = clamp(newX, 0, stageWrap.clientWidth - px.w);
-      newY = clamp(newY, 0, stageWrap.clientHeight - px.h);
-
-      setFieldFromPx(field, newX, newY, px.w, px.h);
-
-      box.style.left = newX + 'px';
-      box.style.top = newY + 'px';
-    };
-
-    const onTouchEnd = () => {
-      box.ontouchmove = null;
-      box.ontouchend = null;
-      renderUI();
-    };
-
-    box.ontouchmove = onTouchMove;
-    box.ontouchend = onTouchEnd;
-  };
-}
-
-function removeField(id) {
-  fields = fields.filter(f => f.id !== id);
-  if (selectedId === id) selectedId = null;
-  renderUI();
-}
-
-/* =========================
-   預填框樣式工具列
-========================= */
-prefillFontSize.onchange = () => {
-  const field = fields.find(f => f.id === selectedId && f.type === 'prefill');
-  if (!field) {
-    showToast("請先選取一個預填框");
-    return;
+    return item;
   }
 
-  field.style.fontSize = Number(prefillFontSize.value);
-  renderUI();
-};
+  function renderUI() {
+    dom.overlay.innerHTML = '';
+    dom.prefillList.innerHTML = '';
+    dom.signList.innerHTML = '';
 
-toggleBoldBtn.onclick = () => {
-  const field = fields.find(f => f.id === selectedId && f.type === 'prefill');
-  if (!field) {
-    showToast("請先選取一個預填框");
-    return;
+    state.fields.forEach((field, index) => {
+      const box = renderFieldBox(field, index);
+      if (box) dom.overlay.appendChild(box);
+
+      const item = renderFieldListItem(field, index);
+      if (field.type === 'prefill') {
+        dom.prefillList.appendChild(item);
+      } else {
+        dom.signList.appendChild(item);
+      }
+    });
+
+    updatePrefillStyleToolbar();
   }
 
-  field.style.fontWeight = field.style.fontWeight === '700' ? '400' : '700';
-  renderUI();
-};
+  function bindBoxEvents(box, field) {
+    box.onmousedown = (event) => {
+      if (event.target.classList.contains('resize-handle')) return;
+      if (event.target.classList.contains('del-icon')) return;
 
-alignBtns.forEach(btn => {
-  btn.onclick = () => {
-    const field = fields.find(f => f.id === selectedId && f.type === 'prefill');
+      event.preventDefault();
+      activateField(field.id);
+
+      const boxRect = box.getBoundingClientRect();
+      const containerRect = dom.stageWrap.getBoundingClientRect();
+      const startOffsetX = event.clientX - boxRect.left;
+      const startOffsetY = event.clientY - boxRect.top;
+
+      const onMove = (moveEvent) => {
+        const px = getFieldPx(field);
+        let newX = moveEvent.clientX - containerRect.left - startOffsetX;
+        let newY = moveEvent.clientY - containerRect.top - startOffsetY;
+
+        newX = clamp(newX, 0, dom.stageWrap.clientWidth - px.w);
+        newY = clamp(newY, 0, dom.stageWrap.clientHeight - px.h);
+
+        setFieldFromPx(field, newX, newY, px.w, px.h);
+        box.style.left = `${newX}px`;
+        box.style.top = `${newY}px`;
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        renderUI();
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    };
+
+    const resizeHandle = box.querySelector('.resize-handle');
+    resizeHandle.onmousedown = (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+
+      activateField(field.id);
+
+      const startPx = getFieldPx(field);
+      const startX = event.clientX;
+      const startY = event.clientY;
+
+      const onMove = (moveEvent) => {
+        const currentPx = getFieldPx(field);
+        const minSize = getMinFieldSize(field);
+        let newW = Math.max(minSize.width, startPx.w + (moveEvent.clientX - startX));
+        let newH = Math.max(minSize.height, startPx.h + (moveEvent.clientY - startY));
+
+        newW = Math.min(newW, dom.stageWrap.clientWidth - currentPx.x);
+        newH = Math.min(newH, dom.stageWrap.clientHeight - currentPx.y);
+
+        setFieldFromPx(field, currentPx.x, currentPx.y, newW, newH);
+        box.style.width = `${newW}px`;
+        box.style.height = `${newH}px`;
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        renderUI();
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    };
+
+    box.ontouchstart = (event) => {
+      if (event.target.classList.contains('resize-handle')) return;
+      if (event.target.classList.contains('del-icon')) return;
+
+      activateField(field.id);
+
+      const touch = event.touches[0];
+      const boxRect = box.getBoundingClientRect();
+      const containerRect = dom.stageWrap.getBoundingClientRect();
+      const startOffsetX = touch.clientX - boxRect.left;
+      const startOffsetY = touch.clientY - boxRect.top;
+
+      box.ontouchmove = (touchEvent) => {
+        const moveTouch = touchEvent.touches[0];
+        const px = getFieldPx(field);
+
+        let newX = moveTouch.clientX - containerRect.left - startOffsetX;
+        let newY = moveTouch.clientY - containerRect.top - startOffsetY;
+
+        newX = clamp(newX, 0, dom.stageWrap.clientWidth - px.w);
+        newY = clamp(newY, 0, dom.stageWrap.clientHeight - px.h);
+
+        setFieldFromPx(field, newX, newY, px.w, px.h);
+        box.style.left = `${newX}px`;
+        box.style.top = `${newY}px`;
+      };
+
+      box.ontouchend = () => {
+        box.ontouchmove = null;
+        box.ontouchend = null;
+        renderUI();
+      };
+    };
+  }
+
+  function activateField(fieldId) {
+    if (state.selectedId !== fieldId) {
+      state.selectedId = fieldId;
+      highlightSelectedUI(fieldId);
+      updatePrefillStyleToolbar();
+    }
+  }
+
+  /* =========================
+     預填樣式控制
+  ========================= */
+  function handlePrefillFontSizeChange() {
+    const field = getSelectedPrefillField();
     if (!field) {
-      showToast("請先選取一個預填框");
+      showToast('請先選取一個預填框');
       return;
     }
 
-    field.style.textAlign = btn.dataset.align;
+    field.style.fontSize = Number(dom.prefillFontSize.value);
     renderUI();
-  };
-});
+  }
 
-/* =========================
-   建立案件
-========================= */
-function buildCasePayload(caseId, signCount) {
-  const childTasks = [];
-  const baseSignUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, 'sign.html')}`;
+  function handleToggleBold() {
+    const field = getSelectedPrefillField();
+    if (!field) {
+      showToast('請先選取一個預填框');
+      return;
+    }
 
-  for (let i = 1; i <= signCount; i++) {
-    const signId = generateChildId(caseId, i);
-    childTasks.push({
-      signId,
+    field.style.fontWeight = field.style.fontWeight === '700' ? '400' : '700';
+    renderUI();
+  }
+
+  function handlePrefillTextColorChange() {
+    const field = getSelectedPrefillField();
+    if (!field) {
+      showToast('請先選取一個預填框');
+      return;
+    }
+
+    field.style.color = dom.prefillTextColor.value;
+    renderUI();
+  }
+
+  /* =========================
+     建立案件
+  ========================= */
+  function getFormValues() {
+    return {
+      caseName: document.getElementById('caseName').value.trim(),
+      applicantName: document.getElementById('applicantName').value.trim(),
+      birthDate: document.getElementById('birthDate').value,
+      staffId: document.getElementById('staffId').value.trim(),
+      password: document.getElementById('password8').value.trim(),
+      applicantEmail: document.getElementById('applicantEmail').value.trim(),
+      signCount: Number(dom.signCountInput.value),
+      signerNames: getSignerNames()
+    };
+  }
+
+  function validateForm() {
+    const form = getFormValues();
+    const incompleteSections = [];
+
+    const isApplicantInfoIncomplete =
+      !form.caseName ||
+      !form.applicantName ||
+      !form.birthDate ||
+      !form.staffId ||
+      form.password.length !== 8 ||
+      !form.applicantEmail ||
+      !isValidEmail(form.applicantEmail);
+
+    const isSignSetupIncomplete =
+      !Number.isInteger(form.signCount) ||
+      form.signCount < 1 ||
+      form.signCount > 10 ||
+      form.signerNames.length !== form.signCount ||
+      form.signerNames.some(name => !name);
+
+    const isFileIncomplete = !state.pdfDoc;
+
+    if (isApplicantInfoIncomplete) incompleteSections.push('起單資訊');
+    if (isSignSetupIncomplete) incompleteSections.push('簽署份數');
+    if (isFileIncomplete) incompleteSections.push('文件管理');
+
+    if (incompleteSections.length > 0) {
+      return `以下欄位尚未填寫完整：${incompleteSections.join('、')}`;
+    }
+
+    if (state.fields.length === 0) return '請至少新增一個欄位';
+
+    return '';
+  }
+
+  function buildCasePayload(caseId, signCount) {
+    const form = getFormValues();
+    const baseSignUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, 'sign.html')}`;
+
+    const childTasks = Array.from({ length: signCount }, (_, index) => {
+      const seq = index + 1;
+      const signId = generateChildId(caseId, seq);
+      const signerName = form.signerNames[index];
+
+      return {
+        signId,
+        caseId,
+        seq,
+        signerName,
+        status: '未簽',
+        signedAt: '',
+        signUrl: `${baseSignUrl}?signId=${encodeURIComponent(signId)}`
+      };
+    });
+
+    return {
       caseId,
-      seq: i,
-      status: '未簽',
-      signedAt: '',
-      signUrl: `${baseSignUrl}?signId=${encodeURIComponent(signId)}`
+      caseName: form.caseName,
+      applicantName: form.applicantName,
+      birthDate: form.birthDate,
+      staffId: form.staffId,
+      password: form.password,
+      applicantEmail: form.applicantEmail,
+      signCount,
+      signerNames: form.signerNames,
+      fileName: dom.fileNameEl.textContent,
+      status: '已建立',
+      createdAt: new Date().toISOString(),
+      fields: state.fields,
+      childTasks
+    };
+  }
+
+  function saveCaseToLocal(payload) {
+    const cases = JSON.parse(localStorage.getItem('esign-case-list') || '[]');
+    cases.unshift(payload);
+    localStorage.setItem('esign-case-list', JSON.stringify(cases));
+  }
+
+  function showCreatedCasePreview(caseId, childTasks) {
+    dom.urlPreview.style.display = 'block';
+    dom.urlPreview.innerHTML = `
+      <strong>建立成功：${caseId}</strong><br>
+      ${childTasks.map(task => `${task.seq}. ${task.signerName}：${task.signUrl}`).join('<br>')}
+    `;
+  }
+
+  function handleCreateCase() {
+    const error = validateForm();
+    if (error) {
+      showToast(error);
+      return;
+    }
+
+    const { signCount } = getFormValues();
+    const caseId = generateCaseId();
+    const payload = buildCasePayload(caseId, signCount);
+
+    saveCaseToLocal(payload);
+    showCreatedCasePreview(caseId, payload.childTasks);
+    showToast(`案件建立成功：${caseId}`);
+
+    setTimeout(() => {
+      window.location.href = `taskboard.html?caseId=${encodeURIComponent(caseId)}`;
+    }, 900);
+  }
+
+  /* =========================
+     事件綁定
+  ========================= */
+  function bindEvents() {
+    dom.pickPdfBtn.addEventListener('click', () => dom.pdfFileInput.click());
+    dom.pdfFileInput.addEventListener('change', (event) => loadPdf(event.target.files[0]));
+
+    dom.addPrefillBtn.addEventListener('click', () => addField('prefill'));
+    dom.addSigBtn.addEventListener('click', () => addField('sig'));
+    dom.addTxtBtn.addEventListener('click', () => addField('txt'));
+
+    dom.prevBtn.addEventListener('click', () => {
+      if (state.currPage > 1) renderPage(state.currPage - 1);
+    });
+
+    dom.nextBtn.addEventListener('click', () => {
+      if (state.pdfDoc && state.currPage < state.pdfDoc.numPages) {
+        renderPage(state.currPage + 1);
+      }
+    });
+
+    dom.zoomInBtn.addEventListener('click', async () => {
+      if (!state.pdfDoc) return;
+      state.currentScale = clamp(state.currentScale + SCALE_STEP, MIN_SCALE, MAX_SCALE);
+      await renderPage(state.currPage);
+    });
+
+    dom.zoomOutBtn.addEventListener('click', async () => {
+      if (!state.pdfDoc) return;
+      state.currentScale = clamp(state.currentScale - SCALE_STEP, MIN_SCALE, MAX_SCALE);
+      await renderPage(state.currPage);
+    });
+
+    dom.fitWidthBtn.addEventListener('click', fitWidth);
+    dom.signCountInput.addEventListener('input', renderSignerInputs);
+    dom.prefillFontSize.addEventListener('change', handlePrefillFontSizeChange);
+    dom.prefillTextColor.addEventListener('change', handlePrefillTextColorChange);
+    dom.toggleBoldBtn.addEventListener('click', handleToggleBold);
+    dom.createCaseBtn.addEventListener('click', handleCreateCase);
+
+    window.addEventListener('resize', async () => {
+      if (!state.pdfDoc) return;
+      await renderPage(state.currPage);
     });
   }
 
-  return {
-    caseId,
-    caseName: document.getElementById('caseName').value.trim(),
-    applicantName: document.getElementById('applicantName').value.trim(),
-    birthDate: document.getElementById('birthDate').value,
-    staffId: document.getElementById('staffId').value.trim(),
-    password: document.getElementById('password8').value.trim(),
-    applicantEmail: document.getElementById('applicantEmail').value.trim(),
-    signCount,
-    fileName: fileNameEl.textContent,
-    status: '已建立',
-    createdAt: new Date().toISOString(),
-    fields,
-    childTasks
-  };
-}
-
-function validateForm() {
-  const caseName = document.getElementById('caseName').value.trim();
-  const applicantName = document.getElementById('applicantName').value.trim();
-  const birthDate = document.getElementById('birthDate').value;
-  const staffId = document.getElementById('staffId').value.trim();
-  const password = document.getElementById('password8').value.trim();
-  const applicantEmail = document.getElementById('applicantEmail').value.trim();
-  const signCount = Number(document.getElementById('signCount').value);
-
-  if (!caseName) return "請填寫案件名稱";
-  if (!applicantName) return "請填寫起單人姓名";
-  if (!birthDate) return "請填寫生日";
-  if (!staffId) return "請填寫員編";
-  if (password.length !== 8) return "密碼需為 8 碼";
-  if (!applicantEmail || !isValidEmail(applicantEmail)) return "請輸入正確的起單人 Email";
-  if (!Number.isInteger(signCount) || signCount < 1 || signCount > 10) return "簽署份數請輸入 1~10";
-  if (!pdfDoc) return "請先上傳 PDF 文件";
-  if (fields.length === 0) return "請至少新增一個欄位";
-
-  return "";
-}
-
-document.getElementById('createCaseBtn').onclick = () => {
-  const error = validateForm();
-  if (error) {
-    showToast(error);
-    return;
-  }
-
-  const signCount = Number(document.getElementById('signCount').value);
-  const caseId = generateCaseId();
-  const payload = buildCasePayload(caseId, signCount);
-
-  const cases = JSON.parse(localStorage.getItem('esign-case-list') || '[]');
-  cases.unshift(payload);
-  localStorage.setItem('esign-case-list', JSON.stringify(cases));
-
-  urlPreview.style.display = 'block';
-  urlPreview.innerHTML = `
-    <strong>建立成功：${caseId}</strong><br>
-    第一份簽署連結：<br>
-    ${payload.childTasks[0].signUrl}
-  `;
-
-  showToast(`案件建立成功：${caseId}`);
-
-  setTimeout(() => {
-    window.location.href = `taskboard.html?caseId=${encodeURIComponent(caseId)}`;
-  }, 900);
-};
-
-/* =========================
-   PDF 控制列
-========================= */
-document.getElementById('prev').onclick = () => {
-  if (currPage > 1) renderPage(currPage - 1);
-};
-
-document.getElementById('next').onclick = () => {
-  if (pdfDoc && currPage < pdfDoc.numPages) renderPage(currPage + 1);
-};
-
-document.getElementById('zoomIn').onclick = async () => {
-  if (!pdfDoc) return;
-  currentScale = clamp(currentScale + SCALE_STEP, MIN_SCALE, MAX_SCALE);
-  await renderPage(currPage);
-};
-
-document.getElementById('zoomOut').onclick = async () => {
-  if (!pdfDoc) return;
-  currentScale = clamp(currentScale - SCALE_STEP, MIN_SCALE, MAX_SCALE);
-  await renderPage(currPage);
-};
-
-document.getElementById('fitWidthBtn').onclick = async () => {
-  if (!pdfDoc) return;
-  await fitWidth();
-};
-
-/* =========================
-   新增欄位按鈕
-========================= */
-document.getElementById('addPrefill').onclick = () => addField('prefill');
-document.getElementById('addSig').onclick = () => addField('sig');
-document.getElementById('addTxt').onclick = () => addField('txt');
-
-/* =========================
-   視窗改變時重新渲染
-========================= */
-window.addEventListener('resize', async () => {
-  if (!pdfDoc) return;
-  await renderPage(currPage);
-});
+  renderSignerInputs();
+  bindEvents();
 </script>
 
 </body>
